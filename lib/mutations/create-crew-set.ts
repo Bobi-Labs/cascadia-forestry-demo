@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import {
   createCrewSetSchema,
   type CreateCrewSetInput,
@@ -6,6 +7,14 @@ import {
 
 export async function createCrewSet(input: CreateCrewSetInput) {
   const parsed = createCrewSetSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id: `demo-${Date.now()}`, created_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   // 1. Insert the crew set

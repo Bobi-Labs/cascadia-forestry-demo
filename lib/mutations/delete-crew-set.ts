@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 
 export async function deleteCrewSet(input: { id: string }) {
+  if (IS_DEMO_MODE) {
+    return { success: true as const, data: { id: input.id } };
+  }
+
   const supabase = createClient();
 
   // Delete members first (FK constraint)

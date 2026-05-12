@@ -1,8 +1,17 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import { updateUnitSchema, type UpdateUnitInput } from "@/lib/schemas/unit";
 
 export async function updateUnit(input: UpdateUnitInput) {
   const { id, ...rest } = updateUnitSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id, updated_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   // Build update object only from defined fields

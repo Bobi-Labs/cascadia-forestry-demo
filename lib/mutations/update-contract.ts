@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import {
   updateContractSchema,
   type UpdateContractInput,
@@ -9,6 +10,14 @@ const DATE_FIELDS = new Set(["start_date", "end_date"]);
 
 export async function updateContract(input: UpdateContractInput) {
   const parsed = updateContractSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id: parsed.id, updated_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   const { id, ...fields } = parsed;

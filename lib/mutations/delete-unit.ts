@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 
 export async function deleteUnit(input: { id: string }) {
+  if (IS_DEMO_MODE) {
+    return { success: true as const };
+  }
+
   const supabase = createClient();
 
   const { error } = await supabase

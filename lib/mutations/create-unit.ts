@@ -1,8 +1,17 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import { createUnitSchema, type CreateUnitInput } from "@/lib/schemas/unit";
 
 export async function createUnit(input: CreateUnitInput) {
   const parsed = createUnitSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id: `demo-${Date.now()}`, created_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   const { data, error } = await supabase

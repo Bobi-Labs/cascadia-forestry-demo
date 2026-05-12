@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import {
   updateEmployeeSchema,
   type UpdateEmployeeInput,
@@ -6,6 +7,14 @@ import {
 
 export async function updateEmployee(input: UpdateEmployeeInput) {
   const parsed = updateEmployeeSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id: parsed.id, updated_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   const { id, ...fields } = parsed;

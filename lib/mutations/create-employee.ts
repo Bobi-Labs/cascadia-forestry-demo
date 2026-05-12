@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import {
   createEmployeeSchema,
   type CreateEmployeeInput,
@@ -6,6 +7,14 @@ import {
 
 export async function createEmployee(input: CreateEmployeeInput) {
   const parsed = createEmployeeSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id: `demo-${Date.now()}`, created_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   const { data, error } = await supabase

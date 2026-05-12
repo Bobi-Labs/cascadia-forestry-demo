@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 import {
   createContractSchema,
   type CreateContractInput,
@@ -6,6 +7,14 @@ import {
 
 export async function createContract(input: CreateContractInput) {
   const parsed = createContractSchema.parse(input);
+
+  if (IS_DEMO_MODE) {
+    return {
+      success: true as const,
+      data: { id: `demo-${Date.now()}`, created_at: new Date().toISOString() },
+    };
+  }
+
   const supabase = createClient();
 
   // Private contracts can have null company_id (Jaime: private/landowner
