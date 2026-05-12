@@ -5,6 +5,11 @@ import { DashboardShell } from '@/components/dashboard-shell'
 import { useAuth } from '@/lib/auth-context'
 import { Loader2, TreePine } from 'lucide-react'
 
+// Render on demand. The dashboard is interactive and depends on client-side
+// auth context, so static prerender adds no value and hits issues when
+// fixture data exercises code paths that expect window/navigator/etc.
+export const dynamic = "force-dynamic"
+
 function LoadingScreen() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center bg-background">

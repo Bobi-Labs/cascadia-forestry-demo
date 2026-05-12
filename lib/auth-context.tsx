@@ -12,6 +12,8 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { cacheUserProfile, getCachedUserProfile, clearCachedAuth } from "@/lib/offline/cached-auth";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
+
 
 /**
  * Profile from public.users — the authorization layer.
@@ -55,7 +57,34 @@ function parseProfile(data: Record<string, unknown>): UserProfile {
   };
 }
 
+// Synthetic admin profile used in demo mode. Drives the initial role
+// (admin), company filter (all), and language (en). Visitors switch
+// roles from the sidebar's "View as" selector, which calls
+// AppContext.setRole directly without ever touching this profile.
+const DEMO_PROFILE: UserProfile = {
+  id: "demo-admin-00000000-0000-0000-0000-000000000000",
+  email: "demo@cascadia.example",
+  name: "Jaime Castillo",
+  role: "admin",
+  company_id: null,
+  language_pref: "en",
+  permissions: {},
+};
+
+const DEMO_USER = {
+  id: DEMO_PROFILE.id,
+  email: DEMO_PROFILE.email,
+  user_metadata: {},
+  app_metadata: {},
+  aud: "authenticated",
+  created_at: "2024-01-01T00:00:00Z",
+} as unknown as User;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Demo mode seeds synthetic user + profile inside the first effect tick
+  // (see below), not at initial state. This keeps SSR / static prerender
+  // rendering the loader instead of the full dashboard tree, which avoids
+  // exercising hooks that assume window/navigator/IndexedDB at build time.
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +147,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    if (IS_DEMO_MODE) {
+      // Hydrate the synthetic admin on the client only. SSR rendered
+      // the loader; one tick after mount we flip into the dashboard.
+      setUser(DEMO_USER);
+      setProfile(DEMO_PROFILE);
+      setIsLoading(false);
+      return;
+    }
     const supabase = createClient();
     let mounted = true;
 
@@ -274,7 +311,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    // Set flag FIRST — prevents auth listener from racing with navigation
+    if (IS_DEMO_MODE) {
+      // No real session to end. Keep the synthetic admin so the chrome
+      // stays usable. The DEMO MODE banner is the canonical "you're in
+      // a demo" surface, so sign-out doesn't need to do anything here.
+      return;
+    }
+    // Set flag FIRST. Prevents auth listener from racing with navigation
     loggingOut.current = true;
     const supabase = createClient();
     profileCache.current = null;
@@ -285,7 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearCachedAuth().catch(() => {});
     // scope: "local" ensures cookies clear immediately in this browser tab
     await supabase.auth.signOut({ scope: "local" });
-    // Hard navigation — avoids client-side routing conflicts with middleware redirect
+    // Hard navigation. Avoids client-side routing conflicts with middleware redirect
     window.location.href = "/auth/login";
   }, []);
 

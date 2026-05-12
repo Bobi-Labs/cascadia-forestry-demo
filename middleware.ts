@@ -1,7 +1,15 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/proxy'
+import { IS_DEMO_MODE } from '@/lib/demo-mode'
 
 export async function middleware(request: NextRequest) {
+  // Demo mode skips Supabase session validation entirely. There is no
+  // auth in the demo, no login redirect, no protected routes. Every
+  // request passes through as the synthetic admin user that
+  // auth-context.tsx injects on the client.
+  if (IS_DEMO_MODE) {
+    return NextResponse.next()
+  }
   return await updateSession(request)
 }
 

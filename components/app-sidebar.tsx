@@ -41,13 +41,9 @@ function getNavGroups(role: Role, t: (k: string) => string): NavGroup[] {
         section: t('operations'),
         items: [
           { key: 'overview', icon: LayoutDashboard },
-          // Projects sidebar entry hosts both Projects + Units as
-          // sub-tabs — single sidebar item, less clutter.
           { key: 'contracts', icon: FolderOpen },
           { key: 'contacts', icon: Contact },
           { key: 'calendar', icon: CalendarDays },
-          { key: 'workTracker', icon: ClipboardList },
-          { key: 'communications', icon: MessageCircle },
         ],
       },
       {
@@ -67,15 +63,6 @@ function getNavGroups(role: Role, t: (k: string) => string): NavGroup[] {
       {
         section: t('admin'),
         items: [
-          // Expenses entry = pure analytics view of LANDED expense data.
-          // The Pending Expenses queue + import controls live under
-          // Imports below.
-          { key: 'expenses', icon: CreditCard },
-          // Imports = unified dashboard for every ingest pipeline.
-          // Tabs: Expenses queue / Units queue + audit / Other Data.
-          // Replaces the separate Pending Units + Ingest Audit nav items.
-          { key: 'imports', icon: Database },
-          { key: 'files', icon: HardDrive },
           { key: 'analytics', icon: TrendingUp },
         ],
       },
@@ -109,20 +96,11 @@ function getNavGroups(role: Role, t: (k: string) => string): NavGroup[] {
           { key: 'overview', icon: LayoutDashboard },
           { key: 'contracts', icon: FolderOpen },
           { key: 'contacts', icon: Users },
-          { key: 'workTracker', icon: ClipboardList },
-          { key: 'communications', icon: MessageCircle },
         ],
       },
       {
         section: t('finance'),
         items: [
-          // Per Jaime (April 2026): Jose (owner) should be able to see the
-          // Expenses dashboard read-only. Same page as admin — no edits,
-          // same role gating on contract tabs elsewhere.
-          { key: 'expenses', icon: CreditCard },
-          // Analytics dashboard — read-only for Jose. All 6 tabs visible
-          // (Expenses live, Equipment/Bids/Payroll/Production/Competitor
-          // as preview).
           { key: 'analytics', icon: TrendingUp },
         ],
       },
@@ -141,14 +119,9 @@ function getNavGroups(role: Role, t: (k: string) => string): NavGroup[] {
         items: [
           { key: 'overview', icon: LayoutDashboard },
           { key: 'myContracts', icon: FolderOpen },
-          // Cross-project unit search — landed May 13 per the May 8
-          // demo call: foremen need to find units fast across every
-          // project, not just within one contract at a time.
           { key: 'adminUnits', icon: Layers },
           { key: 'timeSheets', icon: ClipboardList },
           { key: 'submitTimesheet', icon: Clock },
-          { key: 'communications', icon: MessageCircle },
-          { key: 'files', icon: HardDrive },
           { key: 'myCrew', icon: Users },
           { key: 'crewSets', icon: UsersRound },
         ],
@@ -168,13 +141,9 @@ function getNavGroups(role: Role, t: (k: string) => string): NavGroup[] {
         section: t('operations'),
         items: [
           { key: 'overview', icon: LayoutDashboard },
-          // Projects sidebar entry hosts both Projects + Units as
-          // sub-tabs — same as admin role above.
           { key: 'contracts', icon: FolderOpen },
           { key: 'contacts', icon: Contact },
           { key: 'calendar', icon: CalendarDays },
-          { key: 'workTracker', icon: ClipboardList },
-          { key: 'communications', icon: MessageCircle },
         ],
       },
       {
@@ -182,19 +151,6 @@ function getNavGroups(role: Role, t: (k: string) => string): NavGroup[] {
         items: [
           { key: 'timeSheets', icon: Clock },
           { key: 'officeTimesheet', icon: ClipboardEdit },
-          { key: 'files', icon: HardDrive },
-        ],
-      },
-      {
-        // Was 'Finance' but now hosts Imports (which covers expense
-        // assignments AND unit pending-review). Renamed to better
-        // match what's inside.
-        section: t('imports_section'),
-        items: [
-          // Single Imports entry covers Pending Expenses + Pending
-          // Units (filtered to queues only, no run controls/audit
-          // — those are admin-only inside the hub).
-          { key: 'imports', icon: Database },
         ],
       },
       {

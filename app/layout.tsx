@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Provider from "./provider";
 import { ConditionalAuthProvider } from "./conditional-auth-provider";
 import { SplashScreen } from "@/components/splash-screen";
+import { DemoModeBanner } from "@/components/demo-mode-banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,7 +43,10 @@ export default function RootLayout({
       >
         <SplashScreen>
           <ConditionalAuthProvider>
-            <Provider>{children}</Provider>
+            <Provider>
+              <DemoModeBanner />
+              {children}
+            </Provider>
           </ConditionalAuthProvider>
         </SplashScreen>
         <Analytics />

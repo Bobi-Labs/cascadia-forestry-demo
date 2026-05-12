@@ -37,44 +37,74 @@ export function createClient() {
 }
 
 /**
- * No-network stub used in demo mode. Supports the from(...).select(...)
- * chain plus the auth surface that auth-context touches. Every read
- * resolves to { data: null, error: null }; every auth method resolves
- * to a logged-out state.
+ * No-network stub used in demo mode. Supports the chainable surface
+ * that supabase-js exposes (from, storage, auth, rpc, channel, etc.)
+ * via a recursive Proxy. Every chained method returns the same proxy,
+ * every await resolves to { data: null, error: null }, every iterable
+ * returns empty.
+ *
+ * The auth surface is hand-rolled because callers destructure specific
+ * shapes (session.user, subscription.unsubscribe) that need to be real
+ * properties, not proxy traps.
  */
 function createDemoStubClient() {
   const stubResult = { data: null, error: null }
 
+  // Recursive chainable proxy. Any property access returns the same
+  // proxy; calling it returns the same proxy; awaiting or .then-ing
+  // it resolves to the stub result via a real native Promise (so
+  // subsequent .catch/.finally chain correctly). Covers
+  // .from(...).select(...).eq(...).order(...), .storage.from(...).list(...),
+  // .rpc(...).select(...), and so on.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const queryBuilder: any = new Proxy(() => queryBuilder, {
+  const chain: any = new Proxy(() => chain, {
     get(_target, prop) {
       if (prop === 'then') {
-        return (resolve: (v: typeof stubResult) => unknown) =>
-          resolve(stubResult)
+        return (resolve: unknown, reject: unknown) =>
+          Promise.resolve(stubResult).then(
+            resolve as never,
+            reject as never,
+          )
       }
-      return queryBuilder
+      if (prop === 'catch') {
+        return (reject: unknown) =>
+          Promise.resolve(stubResult).catch(reject as never)
+      }
+      if (prop === 'finally') {
+        return (cb: unknown) =>
+          Promise.resolve(stubResult).finally(cb as never)
+      }
+      if (prop === Symbol.iterator) {
+        return function* () {}
+      }
+      return chain
     },
   })
 
-  const stub = {
-    from: () => queryBuilder,
-    rpc: () => queryBuilder,
-    auth: {
-      getSession: async () => ({ data: { session: null }, error: null }),
-      getUser: async () => ({ data: { user: null }, error: null }),
-      refreshSession: async () => ({ data: { session: null }, error: null }),
-      signOut: async () => ({ error: null }),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      onAuthStateChange: (_cb: (...args: unknown[]) => void) => ({
-        data: { subscription: { unsubscribe: () => {} } },
-      }),
-    },
-    channel: () => ({
-      on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-      subscribe: () => ({ unsubscribe: () => {} }),
+  const auth = {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    getUser: async () => ({ data: { user: null }, error: null }),
+    refreshSession: async () => ({ data: { session: null }, error: null }),
+    signOut: async () => ({ error: null }),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onAuthStateChange: (_cb: (...args: unknown[]) => void) => ({
+      data: { subscription: { unsubscribe: () => {} } },
     }),
-    removeChannel: () => {},
   }
+
+  // Outer proxy: chainable everything except `auth`, which needs real
+  // object shapes for destructuring.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stub: any = new Proxy(
+    {},
+    {
+      get(_target, prop) {
+        if (prop === 'auth') return auth
+        if (prop === 'then') return undefined
+        return chain
+      },
+    },
+  )
 
   return stub as unknown as ReturnType<typeof createBrowserClient<Database>>
 }

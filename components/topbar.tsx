@@ -7,7 +7,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
 import { useTimesheetsWithDetails, useComplianceItems, invalidateSupabaseCache } from '@/hooks/use-supabase'
-import useClientQuery from '@/hooks/use-client-query'
 import { useProfilePhoto } from '@/hooks/use-profile-photo'
 import type { Company, Language } from '@/lib/mock-data'
 import { SyncStatusBadge } from '@/components/sync-status-badge'
@@ -53,7 +52,6 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
   const { profile, signOut } = useAuth()
   const { data: timesheets } = useTimesheetsWithDetails()
   const { data: complianceItems } = useComplianceItems()
-  const { data: pendingExpenses } = useClientQuery("pendingExpenses")
   const queryClient = useQueryClient()
   const [profileOpen, setProfileOpen] = useState(false)
   const [alertsOpen, setAlertsOpen] = useState(false)
@@ -90,18 +88,6 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
   // Pending timesheets count for notification badge
   const pendingCount = timesheets?.filter(ts => ts.status === 'submitted').length || 0
 
-  // Pending expenses count — only surface as alerts when older than 3 days
-  // (per Phase 2 plan: "X expenses unassigned >3 days")
-  const pendingExpensesCount = useMemo(() => {
-    if (!pendingExpenses) return 0
-    const threeDaysAgo = new Date()
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
-    return pendingExpenses.filter((e) => {
-      if (!e.created_at) return false
-      return new Date(e.created_at) < threeDaysAgo
-    }).length
-  }, [pendingExpenses])
-
   // Compliance alerts: items due within 14 days or overdue
   const complianceAlerts = useMemo(() => {
     if (!complianceItems) return { nearDeadline: [] as typeof complianceItems, overdue: [] as typeof complianceItems }
@@ -120,7 +106,7 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
     return { nearDeadline, overdue }
   }, [complianceItems])
 
-  const totalAlertCount = pendingCount + pendingExpensesCount + complianceAlerts.nearDeadline.length + complianceAlerts.overdue.length
+  const totalAlertCount = pendingCount + complianceAlerts.nearDeadline.length + complianceAlerts.overdue.length
 
   // User info from auth
   const initials = profile?.name
@@ -301,22 +287,6 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
                             {pendingCount} pending timesheet{pendingCount !== 1 ? 's' : ''}
                           </div>
                           <div className="text-xs text-muted-foreground">Awaiting review</div>
-                        </div>
-                      </button>
-                    )}
-
-                    {/* Stale pending expenses (>3 days) */}
-                    {pendingExpensesCount > 0 && (
-                      <button
-                        onClick={() => { setActivePage('pendingExpenses'); setAlertsOpen(false) }}
-                        className="flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-elevated"
-                      >
-                        <Receipt className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground">
-                            {pendingExpensesCount} expense{pendingExpensesCount !== 1 ? 's' : ''} need assignment
-                          </div>
-                          <div className="text-xs text-muted-foreground">Pending more than 3 days</div>
                         </div>
                       </button>
                     )}
