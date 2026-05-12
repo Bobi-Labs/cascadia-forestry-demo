@@ -9,12 +9,9 @@ import { ForemanTimesheetPage } from '@/components/pages/foreman-timesheet'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import { useContracts, useUnits, useCrewSets, useEmployees, useComplianceItems, useAllCrewSetMembers, useTimesheetsWithDetails } from '@/hooks/use-supabase'
 import { CrewSetsPage } from '@/components/pages/crew-sets'
-import { WorkTrackerPage } from '@/components/pages/work-tracker'
-import { CommunicationsPage } from '@/components/pages/communications'
 import { ContractsPage } from '@/components/pages/contracts'
 import { AdminUnitsPage } from '@/components/pages/admin-units'
 import { ContactsPage } from '@/components/pages/contacts-page'
-import { FilesPage } from '@/components/pages/files-page'
 import { TimeSheetsPage } from '@/components/pages/timesheets'
 import { ExpensesPage, AnalyticsPage } from '@/components/pages/admin-pages'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
@@ -2004,8 +2001,6 @@ export function RolePageRouter({ page }: { page: string }) {
       case 'contacts': return <ContactsPage />
       case 'expenses': return <ExpensesPage />
       case 'analytics': return <AnalyticsPage />
-      case 'workTracker': return <WorkTrackerPage />
-      case 'communications': return <CommunicationsPage />
       case 'messages': return <OwnerMessages />
       case 'settings': return <ProfileSettings />
       default: return <OwnerOverview />
@@ -2024,8 +2019,6 @@ export function RolePageRouter({ page }: { page: string }) {
       case 'adminUnits': return <AdminUnitsPage />
       case 'timeSheets': return <ForemanTimesheets />
       case 'submitTimesheet': return <ForemanSubmitTimesheetWrapper />
-      case 'files': return <FilesPage />
-      case 'communications': return <CommunicationsPage />
       case 'expenses': return <ForemanExpensesPlaceholder />
       case 'myCrew': return <ForemanMyCrew />
       case 'crewSets': return <CrewSetsPage />

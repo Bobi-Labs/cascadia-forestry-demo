@@ -7,31 +7,18 @@ import { Topbar } from '@/components/topbar'
 import { OverviewPage } from '@/components/pages/overview'
 import { TimeSheetsPage } from '@/components/pages/timesheets'
 import { PayrollPage } from '@/components/pages/payroll'
-import { ProjectsHubPage } from '@/components/pages/projects-hub'
-import { ExpensesHubPage } from '@/components/pages/expenses-hub'
-import { ImportsHubPage } from '@/components/pages/imports-hub'
+import { ContractsPage } from '@/components/pages/contracts'
 import { ProductionPage } from '@/components/pages/production'
-import { WeatherPage } from '@/components/pages/weather-page'
 import { CrewPage } from '@/components/pages/crew'
 import { CrewSetsPage } from '@/components/pages/crew-sets'
 import {
   VehiclesPage, EquipmentPage, SafetyPage,
-  ExpensesPage, AnalyticsPage, CompetitorPage, SettingsPage,
+  AnalyticsPage, CompetitorPage, SettingsPage,
 } from '@/components/pages/admin-pages'
 import { CalendarPage } from '@/components/pages/calendar-page'
 import { ForemanTimesheetPage } from '@/components/pages/foreman-timesheet'
-import { WorkTrackerPage } from '@/components/pages/work-tracker'
 import { RolePageRouter } from '@/components/pages/role-views'
-import { FilesPage } from '@/components/pages/files-page'
 import { ContactsPage } from '@/components/pages/contacts-page'
-import { CommunicationsPage } from '@/components/pages/communications'
-import { PendingExpensesPage } from '@/components/pages/pending-expenses'
-import { PendingUnitsPage } from '@/components/pages/pending-units'
-// AdminUnitsPage now rendered inside ProjectsHubPage as the "Units" tab.
-// Direct import retained as null-op so any remaining `<AdminUnitsPage />`
-// references in this file fail loud rather than silently — there should
-// be none after the AdminPageRouter switch update below.
-import { UnitIngestAuditPage } from '@/components/pages/unit-ingest-audit'
 import { OfflineBanner } from '@/components/offline-banner'
 import { OfflinePlaceholder } from '@/components/offline-placeholder'
 import { useOnlineStatus } from '@/lib/offline/use-online-status'
@@ -52,14 +39,8 @@ function AdminPageRouter({ page, isOnline }: { page: string; isOnline: boolean }
     case 'overview': return <OverviewPage />
     case 'timeSheets': return <TimeSheetsPage />
     case 'payroll': return <PayrollPage />
-    // Projects + Units now share the ProjectsHubPage tabbed wrapper.
-    // The legacy 'adminUnits' key keeps working — it routes to the same
-    // hub but defaults to the Units tab for backwards compat with deep
-    // links + bookmarks.
-    case 'contracts': return <ProjectsHubPage defaultTab="projects" />
-    case 'adminUnits': return <ProjectsHubPage defaultTab="units" />
+    case 'contracts': return <ContractsPage />
     case 'production': return <ProductionPage />
-    case 'weather': return <WeatherPage />
     case 'crew': return <CrewPage />
     case 'crewSets': return <CrewSetsPage />
     case 'vehicles': return <VehiclesPage />
@@ -67,24 +48,10 @@ function AdminPageRouter({ page, isOnline }: { page: string; isOnline: boolean }
     case 'safetyCerts': return <SafetyPage />
     case 'calendar': return <CalendarPage />
     case 'officeTimesheet': return <ForemanTimesheetPage onNavigate={(p) => setActivePage(p)} />
-    // Expenses sidebar entry = pure analytics on landed data (admin
-    // only). The Expense Assignments queue + import controls now live
-    // under the Imports hub instead.
-    case 'expenses': return <ExpensesHubPage defaultTab="expenses" />
-    // All ingest queues + run controls + audits live under Imports.
-    // Legacy route keys redirect to the right tab so deep links survive.
-    case 'imports': return <ImportsHubPage defaultTab="expenses" />
-    case 'pendingExpenses': return <ImportsHubPage defaultTab="expenses" />
-    case 'pendingUnits': return <ImportsHubPage defaultTab="units" />
-    case 'unitIngestAudit': return <ImportsHubPage defaultTab="units" />
     case 'analytics': return <AnalyticsPage />
     case 'competitorData': return <CompetitorPage />
-    // notifications removed — alerts now inline in Work Tracker
     case 'settings': return <SettingsPage />
     case 'contacts': return <ContactsPage />
-    case 'workTracker': return <WorkTrackerPage />
-    case 'communications': return <CommunicationsPage />
-    case 'files': return <FilesPage />
     default: return <OverviewPage />
   }
 }
