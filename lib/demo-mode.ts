@@ -1,11 +1,18 @@
-// Forestry-side stub for the bobi-worktracker `demo-mode` plumbing.
+// Demo-mode flag for the public Cascadia Forestry demo at bobilabs.dev/forestry-demo.
 //
-// bobi-worktracker is a public/demo-able app that gates write affordances
-// behind IS_DEMO_MODE when NEXT_PUBLIC_TRACKER_DEMO_MODE=true. Forestry
-// has no demo mode — RLS + role-based access control handle authorization
-// — so this is permanently `false`.
+// When true:
+//   - lib/queries/* short-circuit to mock-data fixtures instead of Supabase
+//   - lib/mutations/* are no-ops (UI submits, nothing persists)
+//   - middleware skips Supabase auth checks
+//   - auth-context returns a synthetic admin user
+//   - the DEMO MODE banner renders on every page
 //
-// Exported as a constant (not a getter) so build-time tree-shaking can
-// drop demo-only branches.
+// When false (the default everywhere except the demo Vercel deployment):
+//   - app behaves exactly like the source forestry repo
+//   - Supabase env vars are required, build will fail loudly without them
+//
+// Toggled via NEXT_PUBLIC_FORESTRY_DEMO_MODE=true in Vercel project settings
+// on the demo deployment only. Local dev stays false unless explicitly set,
+// matching the source-app behavior.
 
-export const IS_DEMO_MODE = false as const;
+export const IS_DEMO_MODE = process.env.NEXT_PUBLIC_FORESTRY_DEMO_MODE === "true";
