@@ -8,6 +8,12 @@ const withSerwist = withSerwistInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The demo serves under bobilabs.dev/forestry-demo via a path rewrite
+  // in bobilabs-dev/vercel.json. Without basePath the browser would
+  // request /_next/static/... from bobilabs.dev (which doesn't host the
+  // demo's assets) and the page renders unstyled. Mirrors the
+  // /worktracker pattern in bobi-worktracker.
+  basePath: '/forestry-demo',
   typescript: {
     ignoreBuildErrors: true,
   },
