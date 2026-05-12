@@ -1,0 +1,284 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'driver.js/dist/driver.css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #0a0f1a;
+  --foreground: #f0f4f8;
+  --card: #141c2b;
+  --card-foreground: #f0f4f8;
+  --popover: #1a2435;
+  --popover-foreground: #f0f4f8;
+  --primary: #22c55e;
+  --primary-foreground: #0a0f1a;
+  --secondary: #1a2435;
+  --secondary-foreground: #f0f4f8;
+  --muted: #0f1520;
+  --muted-foreground: #94a3b8;
+  --accent: #1a2435;
+  --accent-foreground: #f0f4f8;
+  --destructive: #ef4444;
+  --destructive-foreground: #f0f4f8;
+  --border: #1e2d42;
+  --input: #1e2d42;
+  --ring: #22c55e;
+  --chart-1: #22c55e;
+  --chart-2: #3b82f6;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #ef4444;
+  --radius: 0.5rem;
+  --sidebar: #0f1520;
+  --sidebar-foreground: #f0f4f8;
+  --sidebar-primary: #22c55e;
+  --sidebar-primary-foreground: #0a0f1a;
+  --sidebar-accent: rgba(34,197,94,0.12);
+  --sidebar-accent-foreground: #22c55e;
+  --sidebar-border: #1e2d42;
+  --sidebar-ring: #22c55e;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --purple: #8b5cf6;
+  --surface: #0f1520;
+  --elevated: #1a2435;
+  --border-focus: #2a3f5f;
+  --text-bright: #f0f4f8;
+  --text-body: #94a3b8;
+  --text-muted: #475569;
+  --primary-glow: rgba(34,197,94,0.12);
+}
+
+@theme inline {
+  --font-sans: 'Inter', 'Inter Fallback', sans-serif;
+  --font-mono: 'JetBrains Mono', 'JetBrains Mono Fallback', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-purple: var(--purple);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Hide number input spinners everywhere */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Time inputs: ensure 16px font to prevent iOS auto-zoom */
+  input[type="time"] {
+    font-size: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Android/Chrome: make picker indicator cover full input for easy tapping */
+  @supports not (-webkit-touch-callout: none) {
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    input[type="time"] {
+      position: relative;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shimmer-bar {
+  background: linear-gradient(90deg, transparent 0%, rgba(34,197,94,0.3) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.count-up {
+  animation: count-up 0.5s ease-out forwards;
+}
+
+.hover-card-lift {
+  transition: all 150ms ease;
+}
+.hover-card-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(34,197,94,0.3), 0 4px 12px rgba(0,0,0,0.3);
+  border-color: rgba(34,197,94,0.4);
+}
+
+/* ── Driver.js Tour — Cascadia dark theme ─────────────────────────── */
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.22) !important;
+}
+
+.cascadia-tour-popover.driver-popover {
+  background: #141c2b !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(34, 197, 94, 0.15) !important;
+  color: #f0f4f8 !important;
+  max-width: 340px !important;
+  padding: 20px !important;
+}
+
+.cascadia-tour-popover .driver-popover-title {
+  color: #22c55e !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+.cascadia-tour-popover .driver-popover-description {
+  color: #cbd5e1 !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+
+.cascadia-tour-popover .driver-popover-description strong {
+  color: #f0f4f8 !important;
+  font-weight: 600 !important;
+}
+
+.cascadia-tour-popover .driver-popover-progress-text {
+  color: #64748b !important;
+  font-size: 11px !important;
+}
+
+.cascadia-tour-popover .driver-popover-navigation-btns {
+  margin-top: 16px !important;
+  gap: 8px !important;
+}
+
+.cascadia-tour-popover .driver-popover-prev-btn,
+.cascadia-tour-popover .driver-popover-next-btn,
+.cascadia-tour-popover .driver-popover-close-btn {
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  cursor: pointer !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-family: inherit !important;
+  line-height: 1.4 !important;
+}
+
+.cascadia-tour-popover .driver-popover-next-btn {
+  background: #22c55e !important;
+  color: #0a0f1a !important;
+  border: none !important;
+}
+.cascadia-tour-popover .driver-popover-next-btn:hover {
+  background: #16a34a !important;
+}
+
+.cascadia-tour-popover .driver-popover-prev-btn {
+  background: transparent !important;
+  color: #94a3b8 !important;
+  border: 1px solid #334155 !important;
+}
+.cascadia-tour-popover .driver-popover-prev-btn:hover {
+  border-color: #22c55e !important;
+  color: #22c55e !important;
+}
+
+.cascadia-tour-popover .driver-popover-close-btn {
+  color: #64748b !important;
+  font-size: 16px !important;
+  padding: 2px 8px !important;
+  background: transparent !important;
+  border: none !important;
+}
+.cascadia-tour-popover .driver-popover-close-btn:hover {
+  color: #f0f4f8 !important;
+}
+
+.driver-active-element {
+  border-radius: 8px !important;
+  outline: 2px solid rgba(34, 197, 94, 0.7) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15), 0 0 20px rgba(34, 197, 94, 0.2) !important;
+}
+
+/* ── Tour button pulse glow ─────────────────────────────────────────── */
+@keyframes tour-pulse {
+  0%   { box-shadow: 0 0 4px 0px rgba(34, 197, 94, 0.8), 0 0 0 0px rgba(34, 197, 94, 0.4); }
+  60%  { box-shadow: 0 0 8px 3px rgba(34, 197, 94, 0.4), 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 4px 0px rgba(34, 197, 94, 0.8), 0 0 0 0px rgba(34, 197, 94, 0.4); }
+}
+
+.tour-pulse-btn {
+  animation: tour-pulse 2s ease-in-out infinite !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+  color: #22c55e !important;
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="256" fill="#0a0f1a"/>
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#22c55e" stroke-width="4" opacity="0.3"/>
+  <!-- Tree -->
+  <path d="M256 80 L186 190 L210 190 L150 290 L180 290 L110 400 L402 400 L332 290 L362 290 L302 190 L326 190 Z" fill="#22c55e"/>
+  <!-- Trunk -->
+  <rect x="236" y="385" width="40" height="35" rx="5" fill="#854d0e"/>
+  <!-- Subtle highlight on tree -->
+  <path d="M256 80 L220 155 L240 155 L200 240 L220 240 L170 340 L256 340 Z" fill="#4ade80" opacity="0.25"/>
+</svg>

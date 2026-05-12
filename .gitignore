@@ -1,0 +1,63 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env*
+.DS_Store
+
+# serwist service worker (build artifact)
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+/public/workbox-*.js
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e/screenshots/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+_archive
+.claude/*.local.json
+.claude/*.lock
+.claude/scheduled_tasks.lock
+
+# local doc script scratch (exports + tmp)
+/phase2-doc.txt
+
+# supabase CLI local state
+supabase/.temp/
+
+# Claude-shared screenshots (drop images here for in-session reference)
+.screenshots/
+.tmp/
+
+# Raw call transcripts — parsed versions live in docs/calls/ (committed)
+.transcripts/
+
+# Item 8 — sample landowner spec files (may contain proprietary data)
+docs/samples/unit-ingest/
+.vercel-tmp/
