@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
+import { demoFixtures } from "@/lib/demo-fixtures";
 
 /**
  * Aggregated "pending decisions" for the overview dashboard. One query
@@ -13,6 +15,10 @@ import { createClient } from "@/lib/supabase/client";
 export async function getPendingDecisions(
   companyFilter: "cascadia" | "ramos" | null = null,
 ) {
+  if (IS_DEMO_MODE) {
+    return buildDemoPendingDecisions(companyFilter);
+  }
+
   const supabase = createClient();
 
   const CASCADIA_ID = "00000000-0000-0000-0000-000000000001";
@@ -100,3 +106,57 @@ export async function getPendingDecisions(
 }
 
 export type PendingDecisions = Awaited<ReturnType<typeof getPendingDecisions>>;
+
+function buildDemoPendingDecisions(
+  _companyFilter: "cascadia" | "ramos" | null,
+): PendingDecisions {
+  const timesheets = (demoFixtures.timesheets ?? []) as Array<Record<string, unknown>>;
+  const compliance = (demoFixtures.compliance_items ?? []) as Array<Record<string, unknown>>;
+  const contracts = (demoFixtures.contracts ?? []) as Array<Record<string, unknown>>;
+  const employees = (demoFixtures.employees ?? []) as Array<Record<string, unknown>>;
+  const empById = new Map(employees.map((e) => [e.id as string, e]));
+  const contractById = new Map(contracts.map((c) => [c.id as string, c]));
+
+  const pendingTs = timesheets.filter((t) => t.status === "submitted").map((t) => {
+    const emp = empById.get(t.foreman_id as string);
+    const contract = contractById.get(t.contract_id as string);
+    return {
+      ...t,
+      contracts: contract
+        ? { name: contract.name as string, company_id: contract.company_id as string }
+        : null,
+      employees: emp
+        ? { first_name: emp.first_name as string, last_name: emp.last_name as string }
+        : null,
+    };
+  });
+
+  const today = "2026-05-12";
+  const endingSoon = contracts.filter((c) => {
+    if (c.status !== "active") return false;
+    const end = c.end_date as string | null;
+    if (!end) return false;
+    const days = (new Date(end).getTime() - new Date(today).getTime()) / 86400000;
+    return days >= 0 && days <= 14;
+  });
+
+  return {
+    pendingTimesheets: {
+      count: pendingTs.length,
+      sample: pendingTs.slice(0, 5),
+    },
+    pendingExpenses: {
+      count: 0,
+      sample: [],
+      totalAmount: 0,
+    },
+    complianceDeadlines: {
+      count: compliance.length,
+      sample: compliance.slice(0, 5),
+    },
+    endingContracts: {
+      count: endingSoon.length,
+      sample: endingSoon.slice(0, 5),
+    },
+  } as unknown as PendingDecisions;
+}

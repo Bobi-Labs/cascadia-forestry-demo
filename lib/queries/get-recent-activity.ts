@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
+import { demoFixtures } from "@/lib/demo-fixtures";
 
 /**
  * Unified recent activity feed for the overview dashboard. Pulls the most
@@ -23,6 +25,10 @@ export type ActivityEvent = {
 export async function getRecentActivity(
   companyFilter: "cascadia" | "ramos" | null = null,
 ): Promise<ActivityEvent[]> {
+  if (IS_DEMO_MODE) {
+    return buildDemoRecentActivity();
+  }
+
   const supabase = createClient();
 
   const CASCADIA_ID = "00000000-0000-0000-0000-000000000001";
@@ -111,6 +117,33 @@ export async function getRecentActivity(
   }
 
   // Sort all events by timestamp desc, take top 15
+  events.sort((a, b) => (b.timestamp || "").localeCompare(a.timestamp || ""));
+  return events.slice(0, 15);
+}
+
+function buildDemoRecentActivity(): ActivityEvent[] {
+  const ts = (demoFixtures.timesheets ?? []) as Array<Record<string, unknown>>;
+  const employees = (demoFixtures.employees ?? []) as Array<Record<string, unknown>>;
+  const contracts = (demoFixtures.contracts ?? []) as Array<Record<string, unknown>>;
+  const empById = new Map(employees.map((e) => [e.id as string, e]));
+  const contractById = new Map(contracts.map((c) => [c.id as string, c]));
+
+  const events: ActivityEvent[] = ts.map((t) => {
+    const emp = empById.get(t.foreman_id as string);
+    const contract = contractById.get(t.contract_id as string);
+    const foremanName = emp
+      ? `${emp.first_name as string} ${emp.last_name as string}`
+      : "Unknown";
+    const contractName = (contract?.name as string) ?? "Unknown";
+    return {
+      id: `ts-${t.id as string}`,
+      kind: "timesheet" as const,
+      timestamp: (t.created_at as string) ?? (t.date as string),
+      title: `Timesheet ${t.status as string}`,
+      subtitle: `${foremanName} · ${contractName} · ${t.date as string}`,
+    };
+  });
+
   events.sort((a, b) => (b.timestamp || "").localeCompare(a.timestamp || ""));
   return events.slice(0, 15);
 }

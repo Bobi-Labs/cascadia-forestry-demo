@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { paginatedSelect } from '@/lib/supabase/paginate'
 import { getCachedRefData } from '@/lib/offline/ref-data-sync'
 import type { RefTableName } from '@/lib/offline/constants'
+import { IS_DEMO_MODE } from '@/lib/demo-mode'
+import { demoFixtures, getDemoRows } from '@/lib/demo-fixtures'
 import type {
   WorkType,
   Company,
@@ -81,13 +83,29 @@ export function useSupabaseQuery<T>(
   const enabled = options?.enabled !== false
   const cacheKey = getCacheKey(tableName, filterColumn, filterValue)
 
+  // Demo-mode initial data. The same hook call signature runs in both
+  // modes (no conditional hooks). When IS_DEMO_MODE is true, we seed
+  // state from the fixture map and the useEffect below early-returns
+  // before touching Supabase.
+  const demoInitial: T[] = IS_DEMO_MODE && enabled
+    ? (getDemoRows(tableName, {
+        filter: filterColumn && filterValue != null
+          ? { column: filterColumn, value: filterValue }
+          : undefined,
+        orderBy: options?.orderBy,
+        ascending: options?.ascending ?? true,
+      }) as T[])
+    : []
+
   // Initialize from cache if available and fresh
   const cached = queryCache.get(cacheKey)
   const hasFreshCache = cached && (Date.now() - cached.timestamp) < CACHE_STALE_MS
 
   const globalRefresh = useGlobalRefresh()
-  const [data, setData] = useState<T[]>(hasFreshCache ? cached.data : [])
-  const [loading, setLoading] = useState(!hasFreshCache)
+  const [data, setData] = useState<T[]>(
+    IS_DEMO_MODE ? demoInitial : hasFreshCache ? cached.data : []
+  )
+  const [loading, setLoading] = useState(IS_DEMO_MODE ? false : !hasFreshCache)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -97,6 +115,7 @@ export function useSupabaseQuery<T>(
   }, [cacheKey])
 
   useEffect(() => {
+    if (IS_DEMO_MODE) return
     if (!enabled) {
       setData([])
       setLoading(false)
@@ -278,8 +297,10 @@ export type TimesheetWithDetails = Timesheet & {
 }
 
 export function useTimesheetsWithDetails() {
-  const [data, setData] = useState<TimesheetWithDetails[]>([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<TimesheetWithDetails[]>(
+    IS_DEMO_MODE ? buildDemoTimesheetsWithDetails() : []
+  )
+  const [loading, setLoading] = useState(!IS_DEMO_MODE)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const globalRefresh = useGlobalRefresh()
@@ -287,6 +308,7 @@ export function useTimesheetsWithDetails() {
   const refetch = useCallback(() => setRefreshKey(k => k + 1), [])
 
   useEffect(() => {
+    if (IS_DEMO_MODE) return
     let cancelled = false
     setLoading(true)
 
@@ -354,12 +376,15 @@ export type WeeklyEmployeeHours = {
 }
 
 export function useWeeklyOTData(weekStart: string, weekEnd: string) {
-  const [data, setData] = useState<WeeklyEmployeeHours[]>([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<WeeklyEmployeeHours[]>(
+    IS_DEMO_MODE ? buildDemoWeeklyOT() : []
+  )
+  const [loading, setLoading] = useState(!IS_DEMO_MODE)
   const [error, setError] = useState<string | null>(null)
   const globalRefresh = useGlobalRefresh()
 
   useEffect(() => {
+    if (IS_DEMO_MODE) return
     let cancelled = false
     setLoading(true)
 
@@ -456,7 +481,9 @@ export type ContractHoursData = {
 }
 
 export function useContractHours(contractId: string | null) {
-  const [data, setData] = useState<ContractHoursData | null>(null)
+  const [data, setData] = useState<ContractHoursData | null>(
+    IS_DEMO_MODE && contractId ? buildDemoContractHours(contractId) : null
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -465,6 +492,10 @@ export function useContractHours(contractId: string | null) {
   const refetch = useCallback(() => setRefreshKey(k => k + 1), [])
 
   useEffect(() => {
+    if (IS_DEMO_MODE) {
+      setData(contractId ? buildDemoContractHours(contractId) : null)
+      return
+    }
     if (!contractId) {
       setData(null)
       return
@@ -544,4 +575,99 @@ export function useContractHours(contractId: string | null) {
   }, [contractId, refreshKey, globalRefresh])
 
   return { data, loading, error, refetch }
+}
+
+// ─── Demo-mode helpers ─────────────────────────────────────────────
+//
+// Tree-shaken to nothing in non-demo builds because every callsite
+// gates on `IS_DEMO_MODE` (a compile-time constant via env at build).
+
+function buildDemoTimesheetsWithDetails(): TimesheetWithDetails[] {
+  const ts = (demoFixtures.timesheets ?? []) as Array<Record<string, unknown>>
+  const emps = (demoFixtures.employees ?? []) as Array<Record<string, unknown>>
+  const contracts = (demoFixtures.contracts ?? []) as Array<Record<string, unknown>>
+  const empById = new Map(emps.map(e => [e.id as string, e]))
+  const contractById = new Map(contracts.map(c => [c.id as string, c]))
+  return ts.map(t => {
+    const foreman = empById.get(t.foreman_id as string)
+    const contract = contractById.get(t.contract_id as string)
+    return {
+      ...t,
+      foreman: foreman
+        ? {
+            first_name: foreman.first_name as string,
+            last_name: foreman.last_name as string,
+            is_driver: (foreman.is_driver as boolean) ?? false,
+            is_foreman: (foreman.is_foreman as boolean) ?? false,
+          }
+        : null,
+      contract: contract
+        ? {
+            name: contract.name as string,
+            company_id: contract.company_id as string,
+          }
+        : null,
+    } as unknown as TimesheetWithDetails
+  })
+}
+
+function buildDemoWeeklyOT(): WeeklyEmployeeHours[] {
+  const emps = (demoFixtures.employees ?? []) as Array<Record<string, unknown>>
+  // Mirror the per-employee shape from mock-data: a few rows with
+  // hours / OT / drive that look like a real week.
+  const sample: Record<string, { hours: number; drive: number; ot: number }> = {
+    marco: { hours: 38.5, drive: 8.5, ot: 0 },
+    luis: { hours: 44, drive: 6, ot: 4 },
+    elena: { hours: 36.5, drive: 7, ot: 0 },
+    diego: { hours: 51, drive: 38, ot: 11 },
+    carlos: { hours: 50.5, drive: 35, ot: 10.5 },
+    jose: { hours: 40, drive: 5, ot: 0 },
+    rosa: { hours: 42, drive: 6, ot: 2 },
+  }
+  return emps
+    .filter(e => !(e.is_foreman as boolean))
+    .map(e => {
+      const first = (e.first_name as string).toLowerCase()
+      const totals = sample[first] ?? { hours: 0, drive: 0, ot: 0 }
+      return {
+        employee_id: e.id as string,
+        first_name: e.first_name as string,
+        last_name: e.last_name as string,
+        is_driver: (e.is_driver as boolean) ?? false,
+        is_foreman: (e.is_foreman as boolean) ?? false,
+        total_hours: totals.hours,
+        total_drive_hours: totals.drive,
+        total_ot: totals.ot,
+      }
+    })
+    .sort((a, b) => b.total_hours - a.total_hours)
+}
+
+function buildDemoContractHours(contractId: string): ContractHoursData {
+  const ts = (demoFixtures.timesheets ?? []) as Array<Record<string, unknown>>
+  const uh = (demoFixtures.timesheet_unit_hours ?? []) as Array<Record<string, unknown>>
+  const approved = ts.filter(
+    t => t.contract_id === contractId && t.status === 'approved',
+  )
+  const approvedIds = new Set(approved.map(t => t.id as string))
+  const unitHoursMap = new Map<string, number>()
+  let totalCrewHours = 0
+  let totalDriveHours = 0
+  for (const row of uh) {
+    if (!approvedIds.has(row.timesheet_id as string)) continue
+    const hours = (row.hours as number) ?? 0
+    const unitId = row.unit_id as string
+    unitHoursMap.set(unitId, (unitHoursMap.get(unitId) ?? 0) + hours)
+    totalCrewHours += hours
+  }
+  // Drive hours are roughly 12 percent of crew hours in the demo
+  // fixtures. Close enough to look real without authoring a
+  // separate per-entry drive field.
+  totalDriveHours = Math.round(totalCrewHours * 0.12 * 10) / 10
+  return {
+    totalCrewHours,
+    totalDriveHours,
+    approvedTimesheetCount: approved.length,
+    unitHoursMap,
+  }
 }

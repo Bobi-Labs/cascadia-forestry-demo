@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 
 /**
  * Live overview metrics for the main dashboard's KPI strip and sparklines.
@@ -16,6 +17,10 @@ import { createClient } from "@/lib/supabase/client";
 export async function getOverviewMetrics(
   companyFilter: "cascadia" | "ramos" | null = null,
 ) {
+  if (IS_DEMO_MODE) {
+    return buildDemoOverviewMetrics(companyFilter);
+  }
+
   const supabase = createClient();
 
   // 30-day window (covers current + previous week for sparklines)
@@ -146,3 +151,27 @@ export async function getOverviewMetrics(
 }
 
 export type OverviewMetrics = Awaited<ReturnType<typeof getOverviewMetrics>>;
+
+function buildDemoOverviewMetrics(
+  _companyFilter: "cascadia" | "ramos" | null,
+): OverviewMetrics {
+  // Hardcoded values aligned with the sparkline + dollar figures the
+  // case-study slider screenshots already show: roughly $28K weekly,
+  // 28-crew range, OT trending up the last few days.
+  const dailyGross = [24500, 26200, 27800, 25100, 28300, 27050, 29100, 28400, 26800, 27600, 28900, 27200, 28100, 29400];
+  const dailyRegHours = [180, 192, 205, 184, 208, 199, 215, 209, 197, 203, 213, 200, 207, 217];
+  const dailyOTHours = [4, 7, 8, 10, 7, 11, 12, 9, 11, 8, 12, 10, 11, 13];
+  return {
+    week: {
+      start: "2026-05-05",
+      end: "2026-05-11",
+      gross: 190550,
+      regHours: 1444,
+      otHours: 72,
+      driveHours: 173,
+      uniqueEmployees: 28,
+    },
+    sparklines: { dailyGross, dailyRegHours, dailyOTHours },
+    fromDate: "2026-04-12",
+  };
+}

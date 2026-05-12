@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
+import { demoFixtures } from "@/lib/demo-fixtures";
 
 /**
  * Aggregated payroll data for a specific contract. Used on the contract
@@ -20,6 +22,10 @@ import { createClient } from "@/lib/supabase/client";
  * land in the same table.
  */
 export async function getContractPayroll(contractId: string) {
+  if (IS_DEMO_MODE) {
+    return buildDemoContractPayroll(contractId);
+  }
+
   const supabase = createClient();
 
   // Page through entries — Supabase default 1000-row cap would silently
@@ -111,3 +117,66 @@ export async function getContractPayroll(contractId: string) {
 }
 
 export type ContractPayroll = Awaited<ReturnType<typeof getContractPayroll>>;
+
+function buildDemoContractPayroll(contractId: string): ContractPayroll {
+  // Walk timesheets for the contract, sum hours, then attribute pay
+  // using employee rate. Anchored to the May 12 2026 demo "today".
+  const ts = (demoFixtures.timesheets ?? []).filter(
+    (t) => t.contract_id === contractId,
+  ) as Array<Record<string, unknown>>;
+  const entries = (demoFixtures.timesheet_entries ?? []) as Array<
+    Record<string, unknown>
+  >;
+  const employees = (demoFixtures.employees ?? []) as Array<
+    Record<string, unknown>
+  >;
+  const empById = new Map(employees.map((e) => [e.id as string, e]));
+  const tsIds = new Set(ts.map((t) => t.id as string));
+  const myEntries = entries.filter((e) => tsIds.has(e.timesheet_id as string));
+
+  let totals = { gross: 0, regHours: 0, otHours: 0, driveHours: 0, fringe: 0, entryCount: 0 };
+  const byEmpMap = new Map<string, { employeeId: string; name: string; regHours: number; otHours: number; driveHours: number; gross: number; fringe: number }>();
+  const byMonthMap = new Map<string, { month: string; gross: number; regHours: number }>();
+
+  for (const e of myEntries) {
+    const empId = e.employee_id as string;
+    const emp = empById.get(empId);
+    const rate = ((emp?.rate as number) ?? (emp?.daily_rate as number) ?? 22) as number;
+    const hours = (e.hours as number) ?? 0;
+    const otH = (e.ot_hours as number) ?? 0;
+    const driveH = (e.drive_hours as number) ?? 0;
+    const gross = hours * rate + otH * rate * 1.5;
+
+    totals.gross += gross;
+    totals.regHours += hours;
+    totals.otHours += otH;
+    totals.driveHours += driveH;
+    totals.entryCount += 1;
+
+    const name = emp
+      ? `${emp.last_name as string}, ${emp.first_name as string}`
+      : "(unknown)";
+    if (!byEmpMap.has(empId)) {
+      byEmpMap.set(empId, { employeeId: empId, name, regHours: 0, otHours: 0, driveHours: 0, gross: 0, fringe: 0 });
+    }
+    const r = byEmpMap.get(empId)!;
+    r.regHours += hours;
+    r.otHours += otH;
+    r.driveHours += driveH;
+    r.gross += gross;
+
+    const tsRow = ts.find((t) => t.id === e.timesheet_id);
+    const date = (tsRow?.date as string) ?? "";
+    const month = date.slice(0, 7);
+    if (month) {
+      if (!byMonthMap.has(month)) byMonthMap.set(month, { month, gross: 0, regHours: 0 });
+      const m = byMonthMap.get(month)!;
+      m.gross += gross;
+      m.regHours += hours;
+    }
+  }
+
+  const byEmployee = [...byEmpMap.values()].sort((a, b) => b.gross - a.gross);
+  const byMonth = [...byMonthMap.values()].sort((a, b) => a.month.localeCompare(b.month));
+  return { totals, byEmployee, byMonth };
+}

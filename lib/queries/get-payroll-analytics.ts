@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { IS_DEMO_MODE } from "@/lib/demo-mode";
 
 /**
  * Aggregated payroll analytics across ALL contracts. Used on the
@@ -19,6 +20,10 @@ import { createClient } from "@/lib/supabase/client";
 export async function getPayrollAnalytics(
   companyFilter: "cascadia" | "ramos" | null = null,
 ) {
+  if (IS_DEMO_MODE) {
+    return buildDemoPayrollAnalytics(companyFilter);
+  }
+
   const supabase = createClient();
 
   // Page through all entries
@@ -163,3 +168,47 @@ export async function getPayrollAnalytics(
 }
 
 export type PayrollAnalytics = Awaited<ReturnType<typeof getPayrollAnalytics>>;
+
+function buildDemoPayrollAnalytics(
+  _companyFilter: "cascadia" | "ramos" | null,
+): PayrollAnalytics {
+  // Hardcoded aggregations consistent with the dashboard sparklines:
+  // ~$190K weekly across 6 active contracts, OT trending up.
+  return {
+    totals: {
+      gross: 1842500,
+      regHours: 14250,
+      otHours: 685,
+      driveHours: 1820,
+      fringe: 18400,
+    },
+    byContract: [
+      { contractId: "vanessa-0-0", name: "Vanessa", gross: 524800, regHours: 3920 },
+      { contractId: "kirk-000-0", name: "Kirk", gross: 612300, regHours: 4520 },
+      { contractId: "cedar-00-0", name: "Cedar Ridge", gross: 412000, regHours: 3180 },
+      { contractId: "summit-0-0", name: "Summit Ridge", gross: 293400, regHours: 2630 },
+    ],
+    byWeek: [
+      { week: "2026-02-23", otHours: 28, regHours: 1180 },
+      { week: "2026-03-02", otHours: 34, regHours: 1240 },
+      { week: "2026-03-09", otHours: 41, regHours: 1310 },
+      { week: "2026-03-16", otHours: 38, regHours: 1290 },
+      { week: "2026-03-23", otHours: 45, regHours: 1360 },
+      { week: "2026-03-30", otHours: 52, regHours: 1390 },
+      { week: "2026-04-06", otHours: 47, regHours: 1410 },
+      { week: "2026-04-13", otHours: 58, regHours: 1430 },
+      { week: "2026-04-20", otHours: 51, regHours: 1410 },
+      { week: "2026-04-27", otHours: 63, regHours: 1450 },
+      { week: "2026-05-04", otHours: 67, regHours: 1444 },
+    ],
+    topEarners: [
+      { employeeId: "marco-0-0", name: "Perez, Marco", gross: 8420, regHours: 312, otHours: 18 },
+      { employeeId: "luis-00-0", name: "Garcia, Luis", gross: 8210, regHours: 305, otHours: 21 },
+      { employeeId: "diego-0-0", name: "Vargas, Diego", gross: 9140, regHours: 330, otHours: 38 },
+      { employeeId: "carlos-0", name: "Ruiz, Carlos", gross: 9080, regHours: 328, otHours: 36 },
+      { employeeId: "elena-0-0", name: "Herrera, Elena", gross: 7920, regHours: 298, otHours: 12 },
+    ],
+    entryCount: 1284,
+    employeeCount: 32,
+  };
+}
