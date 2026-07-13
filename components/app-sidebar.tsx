@@ -193,7 +193,12 @@ const roleLabels: Record<Role, string> = {
 export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
   const { role, setRole, activePage, setActivePage, t } = useApp()
   const { profile, signOut } = useAuth()
-  const navGroups = getNavGroups(role, t)
+  // Drop the "Future" coming-soon group in demo mode. A wall of dimmed
+  // placeholder items reads as an unfinished product on a hero walkthrough,
+  // and none of them are on the demo's click-path.
+  const navGroups = getNavGroups(role, t).filter(
+    g => !(IS_DEMO_MODE && g.section === t('future'))
+  )
   const isOwnerView = role === 'owner'
   const isAdmin = role === 'admin'
 

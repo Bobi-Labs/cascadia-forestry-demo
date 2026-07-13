@@ -8,7 +8,7 @@ import { useApp } from '@/lib/app-context'
 import { useContracts, useEmployees, useUnits, useComplianceItems, useTimesheetsWithDetails, useWeeklyOTData, useProductionLogs } from '@/hooks/use-supabase'
 import useClientQuery from '@/hooks/use-client-query'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
-import { nowForDemo } from '@/lib/demo-mode'
+import { IS_DEMO_MODE, nowForDemo } from '@/lib/demo-mode'
 // Sparklines and alerts are now computed from live data below
 
 function KPICard({
@@ -666,7 +666,9 @@ function PendingDecisionsCard() {
       onClick: () => setActivePage('contracts'),
       color: pending && pending.endingContracts.count > 0 ? 'text-warning' : 'text-muted-foreground',
     },
-  ]
+  // Expenses were stripped from the demo, so this row is always zero and
+  // its target page is gone. Drop it in demo mode.
+  ].filter(item => !(IS_DEMO_MODE && item.label === 'Expenses to assign'))
 
   return (
     <div className="rounded-lg border border-border bg-card">
@@ -1318,11 +1320,13 @@ export function OverviewPage() {
         />
       </div>
 
-      {/* 3-col strip: Pending Decisions / Today's Pulse / Today's Weather */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* Strip: Pending Decisions / Today's Pulse / Today's Weather.
+          The weather card has no live feed in the demo (it reads an empty
+          stub), so it is hidden and the strip drops to two columns. */}
+      <div className={`grid grid-cols-1 gap-4 ${IS_DEMO_MODE ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
         <PendingDecisionsCard />
         <TodaysPulseCard overview={overview ?? null} activeContracts={activeContracts.length} hideFinancials={hideFinancials} />
-        <WeatherTodayCard />
+        {!IS_DEMO_MODE && <WeatherTodayCard />}
       </div>
 
       {/* Daily Trends bar chart — last 14 days of payroll. Hidden from
