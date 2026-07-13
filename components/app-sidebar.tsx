@@ -220,8 +220,10 @@ export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 z-30 flex w-[280px] max-w-[85vw] flex-col border-r border-border bg-surface md:w-[260px] md:max-w-none">
-      {/* Role Switcher — admin only */}
-      {isAdmin && (
+      {/* Role Switcher. Admin-only in the real app; always shown in the
+          demo so visitors can move between the admin, foreman, office, and
+          owner views without getting stuck once they leave admin. */}
+      {(isAdmin || IS_DEMO_MODE) && (
         <div className="border-b border-border px-4 py-3">
           <div className="relative">
             <label className="mb-1 block text-[10px] uppercase tracking-widest text-muted-foreground">
