@@ -931,7 +931,7 @@ function ShiftTimesSection({
         className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary/15 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors"
       >
         <Clock className="h-4 w-4" />
-        {"Calc: "}{calcHours}{"h \u2014 Apply to all"}
+        {"Calc: "}{calcHours}{"h. Apply to all"}
       </button>
     </div>
   )
@@ -1216,7 +1216,7 @@ function DriveTimeCalculator({
           style={{ minHeight: "48px" }}
         >
           <Clock className="h-4 w-4" />
-          {"Calc: "}{calcDriveHours}{"h \u2014 Apply to all drivers"}
+          {"Calc: "}{calcDriveHours}{"h. Apply to all drivers"}
         </button>
       </div>
     </div>
