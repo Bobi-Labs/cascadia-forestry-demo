@@ -395,7 +395,7 @@ function AlertsPanel() {
       items.push({
         id: `comp-${c.id}`,
         type: 'critical',
-        title: `${c.title} — OVERDUE`,
+        title: `${c.title}: OVERDUE`,
         countdown: 'Overdue',
       })
     })
@@ -431,7 +431,7 @@ function AlertsPanel() {
           <h3 className="text-sm font-semibold text-foreground">{t('alertsDeadlines')}</h3>
         </div>
         <div className="px-4 py-6 text-center text-xs text-muted-foreground">
-          No active alerts — all clear
+          No active alerts, all clear
         </div>
       </div>
     )
@@ -863,7 +863,7 @@ function DailyTrendsCard() {
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="mb-3 flex items-center gap-2">
         <Activity className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Daily Trends — last 14 days</h3>
+        <h3 className="text-sm font-semibold text-foreground">Daily Trends, last 14 days</h3>
       </div>
       {isLoading ? (
         <div className="flex items-center justify-center py-12 text-xs text-muted-foreground">
@@ -1085,7 +1085,7 @@ function CompactOTMonitor() {
       >
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">OT Monitor — top 5</h3>
+          <h3 className="text-sm font-semibold text-foreground">OT Monitor, top 5</h3>
           {overCount > 0 && (
             <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-mono font-medium text-destructive">
               {overCount} over 40h
