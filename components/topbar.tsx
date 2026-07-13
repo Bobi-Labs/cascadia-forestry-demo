@@ -49,7 +49,7 @@ const pageLabels: Record<string, string> = {
 }
 
 export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: () => void; mobileOpen?: boolean }) {
-  const { activePage, setActivePage, language, setLanguage, company, setCompany, role, pageTabs } = useApp()
+  const { activePage, setActivePage, language, setLanguage, company, setCompany, role, pageTabs, t } = useApp()
   const { profile, signOut } = useAuth()
   const { data: timesheets } = useTimesheetsWithDetails()
   const { data: complianceItems } = useComplianceItems()
@@ -157,7 +157,7 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
           </div>
         ) : (
           <span className="text-sm text-muted-foreground truncate">
-            {pageLabels[activePage] || activePage}
+            {t(activePage) !== activePage ? t(activePage) : (pageLabels[activePage] || activePage)}
           </span>
         )}
       </div>
@@ -227,7 +227,7 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
         >
           <RefreshCw className={`h-3 w-3 text-primary ${refreshing ? 'animate-spin' : ''}`} />
           <span className="h-2 w-2 rounded-full bg-primary pulse-dot" />
-          <span className="hidden sm:inline text-xs font-medium text-primary">Live</span>
+          <span className="hidden sm:inline text-xs font-medium text-primary">{t('live')}</span>
         </button>
 
         {/* Alerts Dropdown */}

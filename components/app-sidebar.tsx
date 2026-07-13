@@ -191,7 +191,7 @@ const roleLabels: Record<Role, string> = {
 }
 
 export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
-  const { role, setRole, activePage, setActivePage, t } = useApp()
+  const { role, setRole, activePage, setActivePage, setLanguage, t } = useApp()
   const { profile, signOut } = useAuth()
   // Drop the "Future" coming-soon group in demo mode. A wall of dimmed
   // placeholder items reads as an unfinished product on a hero walkthrough,
@@ -233,6 +233,10 @@ export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
                 onChange={(e) => {
                   const newRole = e.target.value as Role
                   setRole(newRole)
+                  // The owner ("Jose") view body is authored in Spanish, so open
+                  // it in Spanish for a coherent first frame; other roles reset
+                  // to English. Viewers can still toggle EN/ES in the topbar.
+                  setLanguage(newRole === 'owner' ? 'es' : 'en')
                   // Reset to default page for role
                   if (newRole === 'owner') setActivePage('overview')
                   else if (newRole === 'foreman') setActivePage('overview')
