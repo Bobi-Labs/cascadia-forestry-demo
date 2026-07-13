@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useApp } from '@/lib/app-context'
 import { toast } from '@/hooks/use-toast'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
-import { nowForDemo } from '@/lib/demo-mode'
+import { IS_DEMO_MODE, nowForDemo } from '@/lib/demo-mode'
 import type { Contract, Unit, UnitDraw, ProductionLog } from '@/lib/database.types'
 import { CreateContractSheet } from './create-contract-sheet'
 import { EditContractSheet } from './edit-contract-sheet'
@@ -2451,18 +2451,21 @@ export function ContractsPage() {
                   </div>
                 )}
 
-                {/* Actions — Coming Soon (not Phase 1) */}
-                <div className="flex items-center gap-3">
-                  <button className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none">
-                    <Mail className="mr-1.5 inline h-3 w-3" /> Email Insurance Agent <span className="ml-1 text-[9px]">(Coming Soon)</span>
-                  </button>
-                  <button className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none">
-                    <ClipboardList className="mr-1.5 inline h-3 w-3" /> Onboarding Checklist <span className="ml-1 text-[9px]">(Coming Soon)</span>
-                  </button>
-                  <button className="rounded-md bg-primary/50 px-3 py-2 text-xs font-medium text-primary-foreground opacity-50 cursor-not-allowed pointer-events-none">
-                    <Send className="mr-1.5 inline h-3 w-3" /> Send Update to Foreman <span className="ml-1 text-[9px]">(Coming Soon)</span>
-                  </button>
-                </div>
+                {/* Coming-soon actions. Hidden in the demo so the contract
+                    Overview reads as finished on camera. */}
+                {!IS_DEMO_MODE && (
+                  <div className="flex items-center gap-3">
+                    <button className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none">
+                      <Mail className="mr-1.5 inline h-3 w-3" /> Email Insurance Agent <span className="ml-1 text-[9px]">(Coming Soon)</span>
+                    </button>
+                    <button className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none">
+                      <ClipboardList className="mr-1.5 inline h-3 w-3" /> Onboarding Checklist <span className="ml-1 text-[9px]">(Coming Soon)</span>
+                    </button>
+                    <button className="rounded-md bg-primary/50 px-3 py-2 text-xs font-medium text-primary-foreground opacity-50 cursor-not-allowed pointer-events-none">
+                      <Send className="mr-1.5 inline h-3 w-3" /> Send Update to Foreman <span className="ml-1 text-[9px]">(Coming Soon)</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2625,8 +2628,8 @@ export function ContractsPage() {
  */
 function ContractPayrollTab({ contractId, role }: { contractId: string; role: string }) {
   const isAdmin = role === 'admin'
-  // Office sees hours-only view (no gross / OT pay / fringe / placeholder calc cards).
-  // Per Bees + Jaime call 2026-04-28: office gets line items, never totals.
+  // Office sees an hours-only view: line items and hours, never financial
+  // totals (gross, OT pay, fringe).
   const isOffice = role === 'office'
   const hideFinancials = isOffice
   const { data: payroll, isLoading } = useClientQuery('contractPayroll', contractId)
@@ -2675,9 +2678,7 @@ function ContractPayrollTab({ contractId, role }: { contractId: string; role: st
         </div>
       </div>
 
-      {/* 4-card top row (Gross + 3 placeholders) — hidden for Office.
-          Per Bees + Jaime call 2026-04-28: office gets line items + hours,
-          never totals or financial figures. */}
+      {/* 4-card top row: gross + hour breakdown. Hidden for Office. */}
       {!hideFinancials && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-md border border-border bg-card px-3 py-3">
@@ -2692,39 +2693,39 @@ function ContractPayrollTab({ contractId, role }: { contractId: string; role: st
             </div>
           </div>
 
-          <div className="rounded-md border border-border/50 border-dashed bg-muted/30 px-3 py-3">
+          <div className="rounded-md border border-border bg-card px-3 py-3">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Calculation 1
+              OT Hours
             </div>
-            <div className="font-mono text-base font-bold text-muted-foreground/60">
-              —
+            <div className="font-mono text-base font-bold text-foreground">
+              {fmtH(payroll.totals.otHours)}
             </div>
-            <div className="mt-1 text-[10px] text-muted-foreground/70">
-              Pending Jaime input
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              at 1.5x rate
             </div>
           </div>
 
-          <div className="rounded-md border border-border/50 border-dashed bg-muted/30 px-3 py-3">
+          <div className="rounded-md border border-border bg-card px-3 py-3">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Calculation 2
+              Drive Hours
             </div>
-            <div className="font-mono text-base font-bold text-muted-foreground/60">
-              —
+            <div className="font-mono text-base font-bold text-foreground">
+              {fmtH(payroll.totals.driveHours)}
             </div>
-            <div className="mt-1 text-[10px] text-muted-foreground/70">
-              Pending Jaime input
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              crew transport
             </div>
           </div>
 
-          <div className="rounded-md border border-border/50 border-dashed bg-muted/30 px-3 py-3">
+          <div className="rounded-md border border-border bg-card px-3 py-3">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Calculation 3
+              Fringe
             </div>
-            <div className="font-mono text-base font-bold text-muted-foreground/60">
-              —
+            <div className="font-mono text-base font-bold text-foreground">
+              {fmt$(payroll.totals.fringe)}
             </div>
-            <div className="mt-1 text-[10px] text-muted-foreground/70">
-              Pending Jaime input
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              benefits accrual
             </div>
           </div>
         </div>
