@@ -6,7 +6,7 @@ import { Bell, ChevronDown, Menu, X, User, LogOut, Settings, Clock, AlertTriangl
 import { useQueryClient } from '@tanstack/react-query'
 import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
-import { IS_DEMO_MODE } from '@/lib/demo-mode'
+import { IS_DEMO_MODE, nowForDemo } from '@/lib/demo-mode'
 import { useTimesheetsWithDetails, useComplianceItems, invalidateSupabaseCache } from '@/hooks/use-supabase'
 import { useProfilePhoto } from '@/hooks/use-profile-photo'
 import type { Company, Language } from '@/lib/mock-data'
@@ -92,7 +92,7 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
   // Compliance alerts: items due within 14 days or overdue
   const complianceAlerts = useMemo(() => {
     if (!complianceItems) return { nearDeadline: [] as typeof complianceItems, overdue: [] as typeof complianceItems }
-    const now = new Date()
+    const now = nowForDemo()
     const in14Days = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
     const nearDeadline = complianceItems.filter(ci => {
       if (ci.status === 'completed') return false

@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useApp } from '@/lib/app-context'
 import { toast } from '@/hooks/use-toast'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
+import { nowForDemo } from '@/lib/demo-mode'
 import type { Contract, Unit, UnitDraw, ProductionLog } from '@/lib/database.types'
 import { CreateContractSheet } from './create-contract-sheet'
 import { EditContractSheet } from './edit-contract-sheet'
@@ -2847,8 +2848,8 @@ function ContractPayrollTab({ contractId, role }: { contractId: string; role: st
 
 /** Calendar tab within contract detail — shows contract date range + unit timeline + month grid */
 function ContractCalendarTab({ contract, units }: { contract: Contract; units: Unit[] }) {
-  const todayStr = new Date().toISOString().split('T')[0]
-  const now = new Date()
+  const todayStr = nowForDemo().toISOString().split('T')[0]
+  const now = nowForDemo()
   const [calMonth, setCalMonth] = useState(now.getMonth())
   const [calYear, setCalYear] = useState(now.getFullYear())
 

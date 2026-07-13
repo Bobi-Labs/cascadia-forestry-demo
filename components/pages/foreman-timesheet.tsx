@@ -33,6 +33,7 @@ import { useOnlineStatus } from "@/lib/offline/use-online-status"
 import { enqueueSubmission, hasDuplicateInQueue, getPendingCount } from "@/lib/offline/offline-queue"
 import type { TimesheetPayload } from "@/lib/offline/db"
 import { CASCADIA_ID, RAMOS_ID } from "@/lib/database.types"
+import { nowForDemo } from "@/lib/demo-mode"
 import type { Contract as DBContract, Unit as DBUnit, CrewSet as DBCrewSet, Employee as DBEmployee } from "@/lib/database.types"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -1985,7 +1986,7 @@ function TimesheetForm({
   onNavigate?: (page: string) => void
 }) {
   const [screen, setScreen] = useState<"form" | "unitReview" | "review" | "success">("form")
-  const [date, setDate] = useState<Date>(new Date())
+  const [date, setDate] = useState<Date>(nowForDemo())
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedUnits, setSelectedUnits] = useState<string[]>(
     wizardUnits.map((u) => u.id)
@@ -2346,7 +2347,7 @@ function TimesheetForm({
   const drivers = crew.filter((c) => c.isDriver && c.present)
   const nonDrivers = crew.filter((c) => !c.isDriver)
   const todayDate = isToday(date)
-  const pastDate = isBefore(startOfDay(date), startOfDay(new Date()))
+  const pastDate = isBefore(startOfDay(date), startOfDay(nowForDemo()))
 
   if (screen === "success") {
     return <SuccessScreen onDone={() => onNavigate?.("myContracts")} isQueued={wasQueued} pendingCount={queuedPendingCount} />

@@ -15,6 +15,7 @@ import {
 } from "@/hooks/use-supabase"
 import { supabase } from "@/lib/supabase"
 import { CASCADIA_ID, RAMOS_ID } from "@/lib/database.types"
+import { nowForDemo } from "@/lib/demo-mode"
 import { toast } from "@/hooks/use-toast"
 import {
   Select,
@@ -40,7 +41,7 @@ type EntryRow = {
 }
 
 function todayStr() {
-  return new Date().toISOString().split("T")[0]
+  return nowForDemo().toISOString().split("T")[0]
 }
 
 export function OfficeTimesheetEntry() {

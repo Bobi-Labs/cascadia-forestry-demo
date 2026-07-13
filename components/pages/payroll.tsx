@@ -5,9 +5,10 @@ import { DollarSign, Clock, AlertTriangle, Info, Users, TrendingUp } from "lucid
 import { useWeeklyOTData, useEmployees, useTimesheetsWithDetails } from "@/hooks/use-supabase"
 import { useApp } from "@/lib/app-context"
 import { CASCADIA_ID, RAMOS_ID } from "@/lib/database.types"
+import { nowForDemo } from "@/lib/demo-mode"
 
 function getDisplayWeek(): { start: string; end: string; label: string } {
-  const now = new Date()
+  const now = nowForDemo()
   const day = now.getDay()
   const monday = new Date(now)
   if (day === 0) monday.setDate(now.getDate() - 6)

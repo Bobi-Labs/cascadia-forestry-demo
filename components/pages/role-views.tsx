@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
+import { nowForDemo } from '@/lib/demo-mode'
 import { employees } from '@/lib/mock-data'
 import { BarChart3, Phone, HelpCircle, FolderOpen, Clock, Users, CalendarDays, CloudSun, Truck, DollarSign, Bell, User, FileText, CheckCircle2, TreePine, ArrowUp, AlertTriangle, Snowflake, Wind, Loader2, CheckCircle, Globe, CalendarIcon, MapPin, Building, X, Camera, ClipboardList, UsersRound, ChevronLeft, Folder, File, ExternalLink, Home, StickyNote, Star, Receipt } from 'lucide-react'
 import { ForemanTimesheetPage } from '@/components/pages/foreman-timesheet'
@@ -379,7 +380,7 @@ function OwnerOverview() {
       .filter(item => item.status === 'due_soon' || item.status === 'overdue')
       .map(item => {
         const dueDate = new Date(item.due_date + 'T00:00:00')
-        const now = new Date()
+        const now = nowForDemo()
         const daysUntil = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
         return {
           id: item.id,

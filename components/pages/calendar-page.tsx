@@ -6,6 +6,7 @@ import { useContracts, useComplianceItems } from "@/hooks/use-supabase"
 import { useApp } from "@/lib/app-context"
 import { CASCADIA_ID, RAMOS_ID } from "@/lib/database.types"
 import type { Contract } from "@/lib/database.types"
+import { nowForDemo } from "@/lib/demo-mode"
 
 // Calendar event types
 type CalendarEvent = {
@@ -102,7 +103,7 @@ export function CalendarPage() {
   const { data: contracts, loading: contractsLoading } = useContracts()
   const { data: complianceItems, loading: complianceLoading } = useComplianceItems()
 
-  const today = new Date()
+  const today = nowForDemo()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
 
@@ -530,7 +531,7 @@ function ContractTimeline({ contracts, onContractClick }: { contracts: Contract[
   }
 
   // Center the timeline on today — show equal past and future
-  const today = new Date()
+  const today = nowForDemo()
   const allDates = withDates.flatMap(c => [c.start_date!, c.end_date || c.start_date!])
   const minDate = new Date(Math.min(...allDates.map(d => new Date(d + "T00:00:00").getTime())))
   const maxDate = new Date(Math.max(...allDates.map(d => new Date(d + "T00:00:00").getTime())))

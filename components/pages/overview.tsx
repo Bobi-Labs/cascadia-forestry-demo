@@ -8,6 +8,7 @@ import { useApp } from '@/lib/app-context'
 import { useContracts, useEmployees, useUnits, useComplianceItems, useTimesheetsWithDetails, useWeeklyOTData, useProductionLogs } from '@/hooks/use-supabase'
 import useClientQuery from '@/hooks/use-client-query'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
+import { nowForDemo } from '@/lib/demo-mode'
 // Sparklines and alerts are now computed from live data below
 
 function KPICard({
@@ -351,7 +352,7 @@ function ContractsSection() {
 // On weekends: show the week that just ended.
 // On weekdays: show the current week.
 function getDisplayWeek(offset = 0): { start: string; end: string; label: string } {
-  const now = new Date()
+  const now = nowForDemo()
   const day = now.getDay() // 0=Sun, 1=Mon, ...
 
   const monday = new Date(now)
@@ -844,7 +845,7 @@ function DailyTrendsCard() {
 
   const data = useMemo(() => {
     if (!overview) return []
-    const today = new Date()
+    const today = nowForDemo()
     return overview.sparklines.dailyGross.map((g, i) => {
       const d = new Date(today)
       d.setDate(today.getDate() - (13 - i))

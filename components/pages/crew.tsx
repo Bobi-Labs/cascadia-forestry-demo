@@ -5,6 +5,7 @@ import { Search, AlertTriangle, X, Loader2, Pencil, UserPlus } from 'lucide-reac
 import { useEmployees, useCompanies } from '@/hooks/use-supabase'
 import { useApp } from '@/lib/app-context'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
+import { nowForDemo } from '@/lib/demo-mode'
 import type { Employee } from '@/lib/database.types'
 import { EditEmployeeSheet } from './edit-employee-sheet'
 import { AddEmployeeSheet } from './add-employee-sheet'
@@ -151,7 +152,7 @@ function CrewDetail({ emp, onClose, onEdit, hideFinancials }: { emp: Employee; o
             <div className="flex flex-col gap-2">
               {expirations.map((e, i) => {
                 const expDate = new Date(e.expiration!)
-                const now = new Date()
+                const now = nowForDemo()
                 const daysLeft = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
                 const isExpiring = daysLeft <= 30
                 const isExpired = daysLeft <= 0

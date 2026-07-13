@@ -6,6 +6,7 @@ import { useApp } from '@/lib/app-context'
 import { useTimesheetsWithDetails, useTimesheetEntries, useEmployees } from '@/hooks/use-supabase'
 import { supabase } from '@/lib/supabase'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
+import { nowForDemo } from '@/lib/demo-mode'
 import type { TimesheetWithDetails } from '@/hooks/use-supabase'
 import {
   Dialog,
@@ -19,7 +20,7 @@ import {
 type StatusFilter = 'all' | 'submitted' | 'approved' | 'rejected' | 'draft'
 
 function getWeekRange(offset: number): { start: string; end: string; label: string } {
-  const now = new Date()
+  const now = nowForDemo()
   const dayOfWeek = now.getDay()
   const monday = new Date(now)
   monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + offset * 7)
@@ -177,7 +178,7 @@ export function TimeSheetsPage() {
       if (pending.length > 0) {
         const oldest = pending.reduce((a, b) => (a.date < b.date ? a : b))
         const sheetDate = new Date(oldest.date + 'T00:00:00')
-        const now = new Date()
+        const now = nowForDemo()
         const dayOfWeek = now.getDay()
         const currentMonday = new Date(now)
         currentMonday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
