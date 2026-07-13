@@ -1,109 +1,38 @@
 # TODO. cascadia-forestry-demo
 
-<!-- Execution checklist for the fresh session. Work through in order.
-     [~] in-flight, [x] done, [ ] queued. -->
+<!-- Live work list. [x] done, [~] in-flight, [ ] queued. -->
 
-**Status:** strip + scaffolding checkpoint complete at commit `53df37a`. Resuming from a fresh session for the build + deploy. See `~/.claude/projects/C--dev-cascadia-forestry-demo/memory/session_history.md` for the full briefing.
+## Done
 
-## Phase 1. Fix import breakage from strip pass
+- **Session 2 (2026-05-12): build + deploy.** All 9 phases (import fixes, IS_DEMO_MODE
+  wiring, fixture data, no-op mutations, auth bypass + banner, Vercel deploy, bobilabs
+  rewrite + case study link, smoke test). Live at bobilabs.dev/forestry-demo.
+- **Session 3 (2026-07-13): polish + walkthrough video.** The keeper's video work order.
+  - Three known follow-ups fixed: Sign Out hidden in demo mode, ops.sh PROJECT_NAME,
+    splash/PWA basePath 404s.
+  - Deep meh-sweep (surfaced runtime-only bugs the code audit missed): date coherence via
+    `nowForDemo()`, stale filtered queries in `useSupabaseQuery`, foreman-submit crash,
+    silent office-approve, unmounted `<Toaster/>`, the training-gated foreman wizard,
+    missing fixture display fields, admin-only role switcher, empty weather card + dead
+    nav, Spanish owner coherence, on-path em dashes.
+  - 90s walkthrough video (7 beats + end card) recorded + delivered to
+    `bobilabs-dev/public/Images/cascadiaforestrywalkthrough.mp4`, wired as `hero_video`.
 
-Build currently fails on these 10 files:
+## Pending (needs operator / keeper)
 
-- [ ] `lib/queries/index.ts` (remove dead query exports)
-- [ ] `lib/mutations/index.ts` (remove dead mutation exports)
-- [ ] `lib/queries/get-pending-decisions.ts` (likely tracker refs)
-- [ ] `lib/queries/get-recent-activity.ts` (likely tracker refs)
-- [ ] `lib/supabase/paginate.ts` (check imports)
-- [ ] `lib/supabase/raw-rest.ts` (check imports)
-- [ ] `app/conditional-auth-provider.tsx` (probably tracker auth provider import)
-- [ ] `components/dashboard-shell.tsx` (likely refs stripped components)
-- [ ] `components/pages/admin-pages.tsx` (2195 lines, may have many out-of-scope refs)
-- [ ] `components/pages/role-views.tsx` (role-based view dispatcher)
+- [ ] **Push + deploy** — everything is committed LOCAL in both repos, nothing pushed.
+      Push `cascadia-forestry-demo` first (redeploys the polished demo), smoke-test
+      bobilabs.dev/forestry-demo, then push `bobilabs-dev` (publishes the video hero).
+      Pushing = public Vercel deploy, so this is an operator call.
+- [ ] **Keeper sign-off** on the hero render-priority flip (slides>video → video>slides in
+      `bobilabs-dev app/work/[slug]/page.tsx`, commit `019a9f2`). Safe: only Cascadia has
+      both a video and slides, so only it changes. Alternative is a per-entry slide demote.
 
-For each: open, identify the broken import, remove the dead reference OR delete the file if it's wholly out-of-scope. Run `./ops.sh build` after each batch to confirm the error list shrinks.
+## Nice-to-have (off the recorded click-path, low priority)
 
-## Phase 2. Wire IS_DEMO_MODE env
-
-- [ ] Update `lib/demo-mode.ts`:
-  ```ts
-  export const IS_DEMO_MODE = process.env.NEXT_PUBLIC_FORESTRY_DEMO_MODE === "true";
-  ```
-
-## Phase 3. Demo branches in 6 remaining queries
-
-For each, add an `if (IS_DEMO_MODE)` branch at the top that returns mock-data-shaped fixtures matching the calling component's expectations:
-
-- [ ] `lib/queries/get-contracts.ts` (simple list)
-- [ ] `lib/queries/get-contract-payroll.ts` (per-contract aggregation)
-- [ ] `lib/queries/get-overview-metrics.ts` (dashboard KPI computation)
-- [ ] `lib/queries/get-payroll-analytics.ts` (payroll aggregation)
-- [ ] `lib/queries/get-pending-decisions.ts` (alerts feed)
-- [ ] `lib/queries/get-recent-activity.ts` (activity log)
-
-Use `lib/mock-data.ts` entities (contracts, employees, timeSheets, alerts) as the source.
-
-## Phase 4. No-op mutations in demo mode
-
-For each, add early-return when IS_DEMO_MODE. Don't actually mutate. Optimistic update may show in UI but next refresh shows static mock state:
-
-- [ ] `create-contract`, `update-contract`
-- [ ] `create-crew-set`, `update-crew-set`, `delete-crew-set`
-- [ ] `create-employee`, `update-employee`
-- [ ] `create-unit`, `update-unit`, `delete-unit`
-
-## Phase 5. Auth bypass + DEMO MODE banner
-
-- [ ] `middleware.ts`: skip `updateSession` when IS_DEMO_MODE
-- [ ] `lib/auth-context.tsx`: return synthetic admin user when IS_DEMO_MODE; expose `setDemoRole(role)`
-- [ ] `app/conditional-auth-provider.tsx`: short-circuit Supabase provider when IS_DEMO_MODE
-- [ ] New: `components/demo-mode-banner.tsx`: top bar with "DEMO MODE: synthetic data..." text + role-switcher affordance
-- [ ] `app/layout.tsx`: render banner conditional on IS_DEMO_MODE
-
-Optional polish:
-- [ ] Splash screen on first visit explaining the demo (one-time, dismiss to localStorage)
-
-## Phase 6. Deploy to Vercel
-
-- [ ] `vercel link` in this dir, scope to bobilabs team
-- [ ] Project name: `cascadia-forestry-demo`
-- [ ] Set env var: `NEXT_PUBLIC_FORESTRY_DEMO_MODE=true`
-- [ ] No Supabase env vars in Vercel project (confirm)
-- [ ] `vercel --prod` for first deploy
-- [ ] Capture the deployment URL
-
-## Phase 7. Wire bobilabs.dev rewrite + case study link
-
-In `C:/dev/bobilabs-dev/vercel.json`, append:
-```json
-{
-  "source": "/forestry-demo/:path*",
-  "destination": "https://cascadia-forestry-demo.vercel.app/:path*"
-}
-```
-
-- [ ] Add rewrite, commit + push bobilabs-dev
-- [ ] Update `C:/dev/bobilabs-dev/lib/case-studies.ts` Cascadia entry:
-  - `live_url: "https://bobilabs.dev/forestry-demo"`
-  - `live_url_label: "Try the demo"` (or "Demo the work!" matching the Work Tracker pattern)
-  - Update `confidentiality` field to reference the live demo URL
-- [ ] Commit + push bobilabs-dev
-
-## Phase 8. Smoke test
-
-Visit `https://bobilabs.dev/forestry-demo` in a real browser:
-- [ ] All 9 surfaces render without console errors
-- [ ] DEMO MODE banner visible everywhere
-- [ ] Role-switcher works (admin / foreman / office / owner Spanish)
-- [ ] Mobile responsive at ~375px width
-- [ ] DevTools network tab: zero requests to any `supabase.co` domain
-- [ ] No real client data anywhere (every name, dollar, date, contract # is from mock-data)
-
-## Phase 9. Update memory
-
-When all phases complete, append a "Session 2" entry to `~/.claude/projects/C--dev-cascadia-forestry-demo/memory/MEMORY.md` with:
-- Final deployment URL
-- Bobilabs case study URL where it's linked
-- Any deviations from the plan
-- Any follow-up work surfaced
-
-Then the operator can return to the umbrella session knowing the demo is locked in.
+- [ ] Em dashes remain on the contract-detail Notes/Files tabs (`contracts.tsx:1232/1253/1512`)
+      and the standalone Payroll page. The video never visits these; the live demo would
+      benefit from a cleanup for full voice-rule compliance.
+- [ ] PWA manifest (`app/manifest.ts`) isn't basePath-aware (icon/start_url/scope resolve at
+      root). Off-frame, but a genuine basePath-asset instance.
+- [ ] Contract-detail still has an "Expenses" tab that references stripped functionality.
