@@ -976,13 +976,16 @@ function CrewMemberCard({
       }`}
     >
       <div
-        className="flex items-center gap-3 px-4 py-3"
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer"
         style={{ minHeight: "48px" }}
+        role="button"
+        onClick={() => onTogglePresent(!member.present)}
       >
+        {/* The whole 48px row toggles present, so the checkbox is
+            presentational and the tap target is comfortably large on mobile. */}
         <Checkbox
           checked={member.present}
-          onCheckedChange={onTogglePresent}
-          className="h-5 w-5 shrink-0"
+          className="h-5 w-5 shrink-0 pointer-events-none"
         />
         <span
           className={`flex-1 min-w-0 truncate text-sm font-medium ${
@@ -1138,7 +1141,7 @@ function DriveTimeCalculator({
         </span>
       </div>
       <div className="border-t border-border/50 px-4 py-3">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <span className="mb-2 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Morning</span>
             <div className="flex items-center gap-2">
@@ -2652,12 +2655,16 @@ function TimesheetForm({
 
       {/* Action Buttons */}
       <div className="flex gap-3 pb-4">
-        <button
-          type="button"
-          className="flex h-12 flex-1 items-center justify-center rounded-lg border border-border text-sm font-medium text-muted-foreground hover:bg-elevated transition-colors"
-        >
-          Save Draft
-        </button>
+        {/* Save Draft has no handler; hide it in the demo so the only
+            action button is the working Submit. */}
+        {!IS_DEMO_MODE && (
+          <button
+            type="button"
+            className="flex h-12 flex-1 items-center justify-center rounded-lg border border-border text-sm font-medium text-muted-foreground hover:bg-elevated transition-colors"
+          >
+            Save Draft
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setScreen("unitReview")}
@@ -2734,16 +2741,19 @@ export function ForemanTimesheetPage({ onNavigate, initialContractId }: { onNavi
     return employeeIds
       .map(id => empMap.get(id))
       .filter((e): e is DBEmployee => !!e)
-      .map(e => ({
+      .map((e, i) => ({
         id: e.id, // Real DB UUID
         name: `${e.last_name}, ${e.first_name}`,
         present: true,
-        hours: 0,
+        // Seed realistic values in demo mode so the form opens populated and
+        // the OT-alert / OT-watch badges actually fire on camera. The real
+        // app starts these at zero for the foreman to fill in.
+        hours: IS_DEMO_MODE ? [8, 8, 7.5, 8.5, 8][i % 5] : 0,
         workType: "Planting",
-        weeklyHours: 0,
-        bags: 0,
+        weeklyHours: IS_DEMO_MODE ? [44, 38, 33, 41, 36][i % 5] : 0,
+        bags: IS_DEMO_MODE ? [6, 5, 7, 4, 6][i % 5] : 0,
         isDriver: e.is_driver,
-        driveHours: 0,
+        driveHours: IS_DEMO_MODE && e.is_driver ? 1.5 : 0,
         note: "",
         showNote: false,
       }))
