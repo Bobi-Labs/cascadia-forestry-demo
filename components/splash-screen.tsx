@@ -77,7 +77,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
           {/* Static logo — always visible as fallback */}
           {!videoPlaying && (
             <Image
-              src="/logo-dark.png"
+              src="/forestry-demo/logo-dark.png"
               alt="Cascadia & Ramos Forestry"
               width={256}
               height={256}
@@ -86,9 +86,11 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
             />
           )}
           {/* Video — hidden until it actually starts playing */}
+          {/* Asset srcs carry the basePath from next.config.mjs by hand:
+              plain <video> and unoptimized <Image> don't get it applied */}
           <video
             ref={videoRef}
-            src="/splash.mp4"
+            src="/forestry-demo/splash.mp4"
             muted
             playsInline
             preload="auto"
