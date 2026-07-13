@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
-import { nowForDemo } from '@/lib/demo-mode'
+import { IS_DEMO_MODE, nowForDemo } from '@/lib/demo-mode'
 import { employees } from '@/lib/mock-data'
 import { BarChart3, Phone, HelpCircle, FolderOpen, Clock, Users, CalendarDays, CloudSun, Truck, DollarSign, Bell, User, FileText, CheckCircle2, TreePine, ArrowUp, AlertTriangle, Snowflake, Wind, Loader2, CheckCircle, Globe, CalendarIcon, MapPin, Building, X, Camera, ClipboardList, UsersRound, ChevronLeft, Folder, File, ExternalLink, Home, StickyNote, Star, Receipt } from 'lucide-react'
 import { ForemanTimesheetPage } from '@/components/pages/foreman-timesheet'
@@ -2019,7 +2019,12 @@ export function RolePageRouter({ page }: { page: string }) {
       // ForemanMyContracts with the contract pre-selected.
       case 'adminUnits': return <AdminUnitsPage />
       case 'timeSheets': return <ForemanTimesheets />
-      case 'submitTimesheet': return <ForemanSubmitTimesheetWrapper />
+      // In demo mode the wizard is fully interactive (submit is a no-op that
+      // shows the success screen). The "Preview Only / Training in Progress"
+      // wrapper is a client-training gate that would make the beat unclickable.
+      case 'submitTimesheet': return IS_DEMO_MODE
+        ? <ForemanTimesheetPage onNavigate={(page) => setActivePage(page)} />
+        : <ForemanSubmitTimesheetWrapper />
       case 'expenses': return <ForemanExpensesPlaceholder />
       case 'myCrew': return <ForemanMyCrew />
       case 'crewSets': return <CrewSetsPage />
