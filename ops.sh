@@ -10,7 +10,7 @@ set -euo pipefail
 
 # ──────────────── Config ────────────────
 
-PROJECT_NAME="cascadia-ramos-forestry-project"
+PROJECT_NAME="cascadia-forestry-demo"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ──────────────── Helpers ────────────────
