@@ -65,7 +65,7 @@ export function PayrollPage() {
       <div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-4 py-3">
         <Info className="h-4 w-4 text-info shrink-0" />
         <div className="text-xs text-foreground">
-          <span className="font-medium">Payroll Summary View</span> — Full payroll calculation, export, and period management coming in Phase 2.
+          <span className="font-medium">Payroll Summary View.</span> Full payroll calculation, export, and period management coming in Phase 2.
           Current view shows real-time estimates from submitted timesheet data.
         </div>
       </div>

@@ -2567,7 +2567,7 @@ export function ContractsPage() {
             {activeTab === 'Onboarding' && (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-                  Onboarding checklist — coming soon
+                  Onboarding checklist coming soon
                 </div>
               </div>
             )}
@@ -2587,7 +2587,7 @@ export function ContractsPage() {
             {/* Placeholder for other tabs */}
             {!['Overview', 'Units', 'Contacts', 'Calendar', 'Notes', 'Onboarding', 'Files', 'Expenses', 'Payroll'].includes(activeTab) && (
               <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
-                {activeTab} content — coming soon
+                {activeTab} content coming soon
               </div>
             )}
           </div>

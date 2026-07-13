@@ -604,11 +604,11 @@ function OTMonitorPanel() {
         <div className="flex flex-col gap-2 p-4">
           <div className="flex items-center gap-2 rounded-md bg-warning/10 px-3 py-2 text-xs">
             <Snowflake className="h-3.5 w-3.5 text-warning" />
-            <span className="text-foreground">Frost Warning — Cowlitz CO tomorrow AM, low 28 F</span>
+            <span className="text-foreground">Frost Warning: Cowlitz CO tomorrow AM, low 28 F</span>
           </div>
           <div className="flex items-center gap-2 rounded-md bg-warning/10 px-3 py-2 text-xs">
             <Wind className="h-3.5 w-3.5 text-warning" />
-            <span className="text-foreground">Wind Advisory — Columbia CO Thu-Fri, gusts 25mph</span>
+            <span className="text-foreground">Wind Advisory: Columbia CO Thu-Fri, gusts 25mph</span>
           </div>
           <button className="mt-1 text-left text-xs text-muted-foreground hover:text-primary">{'Open Weather \u2192'}</button>
         </div>
