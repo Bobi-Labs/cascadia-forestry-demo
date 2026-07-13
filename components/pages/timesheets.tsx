@@ -6,7 +6,8 @@ import { useApp } from '@/lib/app-context'
 import { useTimesheetsWithDetails, useTimesheetEntries, useEmployees } from '@/hooks/use-supabase'
 import { supabase } from '@/lib/supabase'
 import { CASCADIA_ID, RAMOS_ID } from '@/lib/database.types'
-import { nowForDemo } from '@/lib/demo-mode'
+import { IS_DEMO_MODE, nowForDemo } from '@/lib/demo-mode'
+import { toast } from '@/hooks/use-toast'
 import type { TimesheetWithDetails } from '@/hooks/use-supabase'
 import {
   Dialog,
@@ -140,6 +141,9 @@ export function TimeSheetsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TimesheetWithDetails | null>(null)
   const [deleteMessage, setDeleteMessage] = useState('')
+  // Demo-mode optimistic status changes (approve/reject have no backend to
+  // persist to, so we overlay the new status on the static fixtures).
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({})
 
   // Photo submissions from Telegram
   type PhotoSubmission = { id: string; telegram_username: string; photo_url: string; caption: string | null; status: string; created_at: string }
@@ -192,6 +196,13 @@ export function TimeSheetsPage() {
   }, [pageHint, setPageHint, timesheets])
 
   const handleApprove = useCallback(async (timesheetId: string) => {
+    // Demo mode: no backend. Optimistically flip the row to approved and
+    // confirm with a toast so the action is visible on screen.
+    if (IS_DEMO_MODE) {
+      setStatusOverrides(prev => ({ ...prev, [timesheetId]: 'approved' }))
+      toast({ title: 'Timesheet approved' })
+      return
+    }
     setActionLoading(timesheetId)
     try {
       // 1. Update timesheet status to approved
@@ -276,6 +287,12 @@ export function TimeSheetsPage() {
     const reason = window.prompt('Rejection reason (optional):')
     if (reason === null) return // user cancelled
 
+    if (IS_DEMO_MODE) {
+      setStatusOverrides(prev => ({ ...prev, [timesheetId]: 'rejected' }))
+      toast({ title: 'Timesheet rejected' })
+      return
+    }
+
     setActionLoading(timesheetId)
     try {
       const { error: err } = await supabase
@@ -336,18 +353,42 @@ export function TimeSheetsPage() {
 
   const week = useMemo(() => getWeekRange(weekOffset), [weekOffset])
 
+  // Apply demo-mode optimistic status overrides before any filtering so the
+  // row, the status filter, and the pending/approved counts all agree.
+  const effectiveTimesheets = useMemo(() => {
+    if (!timesheets || Object.keys(statusOverrides).length === 0) return timesheets
+    return timesheets.map(ts =>
+      statusOverrides[ts.id] ? { ...ts, status: statusOverrides[ts.id] } : ts
+    )
+  }, [timesheets, statusOverrides])
+
   // Filter by company
   const companyFiltered = useMemo(() => {
-    if (!timesheets) return []
-    if (company === 'cascadia') return timesheets.filter(ts => ts.contract?.company_id === CASCADIA_ID)
-    if (company === 'ramos') return timesheets.filter(ts => ts.contract?.company_id === RAMOS_ID)
-    return timesheets
-  }, [timesheets, company])
+    if (!effectiveTimesheets) return []
+    if (company === 'cascadia') return effectiveTimesheets.filter(ts => ts.contract?.company_id === CASCADIA_ID)
+    if (company === 'ramos') return effectiveTimesheets.filter(ts => ts.contract?.company_id === RAMOS_ID)
+    return effectiveTimesheets
+  }, [effectiveTimesheets, company])
 
   // Filter by week
   const weekFiltered = useMemo(() => {
     return companyFiltered.filter(ts => ts.date >= week.start && ts.date <= week.end)
   }, [companyFiltered, week])
+
+  const handleBulkApprove = useCallback(() => {
+    const pendingIds = weekFiltered.filter(ts => ts.status === 'submitted').map(ts => ts.id)
+    if (pendingIds.length === 0) return
+    if (IS_DEMO_MODE) {
+      setStatusOverrides(prev => {
+        const next = { ...prev }
+        pendingIds.forEach(id => { next[id] = 'approved' })
+        return next
+      })
+      toast({ title: `${pendingIds.length} timesheets approved` })
+      return
+    }
+    pendingIds.forEach(id => handleApprove(id))
+  }, [weekFiltered, handleApprove])
 
   // Filter by status
   const filtered = useMemo(() => {
@@ -419,11 +460,17 @@ export function TimeSheetsPage() {
             </button>
           ))}
           <div className="ml-2 h-5 w-px bg-border" />
-          <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-[0_0_12px_rgba(34,197,94,0.3)] hover:bg-primary/90">
-            <Download className="mr-1.5 inline h-3 w-3" /> Export
-          </button>
+          {/* Export writes a file, which the demo can't do, so hide it there */}
+          {!IS_DEMO_MODE && (
+            <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-[0_0_12px_rgba(34,197,94,0.3)] hover:bg-primary/90">
+              <Download className="mr-1.5 inline h-3 w-3" /> Export
+            </button>
+          )}
           {pendingCount > 0 && (
-            <button className="rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10">
+            <button
+              onClick={handleBulkApprove}
+              className="rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
+            >
               Bulk Approve ({pendingCount})
             </button>
           )}

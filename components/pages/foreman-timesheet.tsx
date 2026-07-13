@@ -33,7 +33,7 @@ import { useOnlineStatus } from "@/lib/offline/use-online-status"
 import { enqueueSubmission, hasDuplicateInQueue, getPendingCount } from "@/lib/offline/offline-queue"
 import type { TimesheetPayload } from "@/lib/offline/db"
 import { CASCADIA_ID, RAMOS_ID } from "@/lib/database.types"
-import { nowForDemo } from "@/lib/demo-mode"
+import { IS_DEMO_MODE, nowForDemo } from "@/lib/demo-mode"
 import type { Contract as DBContract, Unit as DBUnit, CrewSet as DBCrewSet, Employee as DBEmployee } from "@/lib/database.types"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -2214,6 +2214,15 @@ function TimesheetForm({
     setWasQueued(false)
 
     try {
+      // Demo mode: no backend to write to. The insert path below would
+      // hit the no-op Supabase stub and return {data:null}, so `ts.id`
+      // throws. Simulate a quick submit and show the success screen.
+      if (IS_DEMO_MODE) {
+        await new Promise(r => setTimeout(r, 600))
+        setScreen("success")
+        return
+      }
+
       // Offline: queue for later sync
       if (!navigator.onLine) {
         const queued = await queueSubmission()
