@@ -141,16 +141,18 @@ function buildDemoContractPayroll(contractId: string): ContractPayroll {
   for (const e of myEntries) {
     const empId = e.employee_id as string;
     const emp = empById.get(empId);
-    const rate = ((emp?.rate as number) ?? (emp?.daily_rate as number) ?? 22) as number;
-    const hours = (e.hours as number) ?? 0;
+    const rate = ((e.rate_applied as number) ?? (emp?.rate as number) ?? (emp?.daily_rate as number) ?? 22) as number;
+    const hours = (e.hours_worked as number) ?? (e.hours as number) ?? 0;
     const otH = (e.ot_hours as number) ?? 0;
     const driveH = (e.drive_hours as number) ?? 0;
-    const gross = hours * rate + otH * rate * 1.5;
+    const gross = (e.gross_pay as number) ?? (hours * rate + otH * rate * 1.5);
+    const fringe = (e.fringe_amount as number) ?? 0;
 
     totals.gross += gross;
     totals.regHours += hours;
     totals.otHours += otH;
     totals.driveHours += driveH;
+    totals.fringe += fringe;
     totals.entryCount += 1;
 
     const name = emp
@@ -164,6 +166,7 @@ function buildDemoContractPayroll(contractId: string): ContractPayroll {
     r.otHours += otH;
     r.driveHours += driveH;
     r.gross += gross;
+    r.fringe += fringe;
 
     const tsRow = ts.find((t) => t.id === e.timesheet_id);
     const date = (tsRow?.date as string) ?? "";

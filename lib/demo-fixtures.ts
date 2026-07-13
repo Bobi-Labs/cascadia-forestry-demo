@@ -572,6 +572,7 @@ function makeUnits() {
       amount: u.amount,
       amount_type: 'tree',
       completed_amount: u.completed,
+      completion_pct: u.amount > 0 ? Math.round((u.completed / u.amount) * 100) : 0,
       status: u.status,
       terrain_difficulty: u.terrain,
       acres: 18,
@@ -595,6 +596,7 @@ function makeUnits() {
       amount: u.amount,
       amount_type: 'tree',
       completed_amount: u.completed,
+      completion_pct: u.amount > 0 ? Math.round((u.completed / u.amount) * 100) : 0,
       status: u.status,
       terrain_difficulty: 'moderate',
       acres: 21,
@@ -617,6 +619,7 @@ function makeUnits() {
       amount: u.amount,
       amount_type: 'tree',
       completed_amount: u.completed,
+      completion_pct: u.amount > 0 ? Math.round((u.completed / u.amount) * 100) : 0,
       status: u.status,
       terrain_difficulty: 'moderate',
       acres: 22,
@@ -630,12 +633,15 @@ function makeUnits() {
 
 const units = makeUnits()
 
+// Partial-payment ledger rows. The Units tab reads amount_invoiced /
+// amount_paid / acres_submitted plus the inspection + payment dates, so
+// each draw carries those fields to render the money and progress.
 const unitDraws = [
-  { id: id('drw-mu1-1'), unit_id: id('midge-u1'), draw_number: 1, amount: 2150, draw_date: '2026-04-25', status: 'approved', notes: null, created_at: '2026-04-25T00:00:00Z' },
-  { id: id('drw-q3-1'), unit_id: id('quaker-u3'), draw_number: 1, amount: 1200, draw_date: '2026-04-18', status: 'paid', notes: null, created_at: '2026-04-18T00:00:00Z' },
-  { id: id('drw-q3-2'), unit_id: id('quaker-u3'), draw_number: 2, amount: 1200, draw_date: '2026-05-02', status: 'submitted', notes: null, created_at: '2026-05-02T00:00:00Z' },
-  { id: id('drw-sv2-1'), unit_id: id('silver-u2'), draw_number: 1, amount: 1800, draw_date: '2026-04-30', status: 'inspected', notes: null, created_at: '2026-04-30T00:00:00Z' },
-  { id: id('drw-ca2-1'), unit_id: id('cedar-a2'), draw_number: 1, amount: 1900, draw_date: '2026-05-05', status: 'submitted', notes: null, created_at: '2026-05-05T00:00:00Z' },
+  { id: id('drw-mu1-1'), unit_id: id('midge-u1'), draw_number: 1, acres_submitted: 42, amount_invoiced: 8400, amount_paid: 8400, status: 'paid', inspection_completed_at: '2026-04-24', inspector_name: 'B. Sutter', payment_received_at: '2026-05-01', notes: 'Full payment received', created_at: '2026-04-25T00:00:00Z' },
+  { id: id('drw-q3-1'), unit_id: id('quaker-u3'), draw_number: 1, acres_submitted: 30, amount_invoiced: 6000, amount_paid: 6000, status: 'paid', inspection_completed_at: '2026-04-17', inspector_name: 'B. Sutter', payment_received_at: '2026-04-28', notes: null, created_at: '2026-04-18T00:00:00Z' },
+  { id: id('drw-q3-2'), unit_id: id('quaker-u3'), draw_number: 2, acres_submitted: 28, amount_invoiced: 5600, amount_paid: null, status: 'submitted', inspection_requested_at: '2026-05-03', notes: 'Awaiting inspection', created_at: '2026-05-02T00:00:00Z' },
+  { id: id('drw-sv2-1'), unit_id: id('silver-u2'), draw_number: 1, acres_submitted: 36, amount_invoiced: 7200, amount_paid: null, status: 'inspected', inspection_completed_at: '2026-04-30', inspector_name: 'T. Rasmussen', notes: null, created_at: '2026-04-30T00:00:00Z' },
+  { id: id('drw-ca2-1'), unit_id: id('cedar-a2'), draw_number: 1, acres_submitted: 38, amount_invoiced: 7600, amount_paid: null, status: 'submitted', inspection_requested_at: '2026-05-06', notes: null, created_at: '2026-05-05T00:00:00Z' },
 ]
 
 const crewSets = [
@@ -700,17 +706,61 @@ const timesheets = [
   { id: id('ts-7'), date: daysAhead(-1), foreman_id: id('miguel'), contract_id: id('cedar'), status: 'submitted', total_hours: 88, crew_count: 11, notes: null, created_at: daysAhead(-1) + 'T17:00:00Z', updated_at: daysAhead(-1) + 'T17:00:00Z' },
 ]
 
+// Per-timesheet crew rosters. Each present member gets a full entry row so
+// the approval-queue breakdown (reads hours_worked/gross_pay/is_present) and
+// the contract payroll roll-up (aggregates per employee) both render real
+// data instead of a single Marco row.
+const crewByForeman: Record<string, { emp: string; rate: number }[]> = {
+  [id('agustin')]: [
+    { emp: id('marco'), rate: 27 },
+    { emp: id('luis'), rate: 24 },
+    { emp: id('elena'), rate: 23 },
+    { emp: id('diego'), rate: 26 },
+    { emp: id('carlos'), rate: 25 },
+  ],
+  [id('maya')]: [
+    { emp: id('carlos'), rate: 25 },
+    { emp: id('luis'), rate: 24 },
+    { emp: id('elena'), rate: 23 },
+    { emp: id('rosa'), rate: 23 },
+    { emp: id('marco'), rate: 27 },
+  ],
+  [id('miguel')]: [
+    { emp: id('jose'), rate: 24 },
+    { emp: id('rosa'), rate: 23 },
+    { emp: id('luis'), rate: 24 },
+    { emp: id('marco'), rate: 27 },
+  ],
+}
+
 const timesheetEntries: Record<string, unknown>[] = []
+let tseSeq = 0
 for (const ts of timesheets) {
-  timesheetEntries.push({
-    id: id('tse-' + (ts.id as string).slice(0, 5)),
-    timesheet_id: ts.id,
-    employee_id: id('marco'),
-    hours: 8,
-    ot_hours: 0,
-    drive_hours: 0,
-    notes: null,
-    created_at: ts.created_at,
+  const crew = crewByForeman[ts.foreman_id as string] ?? []
+  crew.forEach((member, i) => {
+    const hours = [8, 8, 7.5, 8.5, 8][i % 5]
+    const otHours = i === 0 ? 1.5 : i === 3 ? 0.5 : 0
+    const driveHours = i === 3 ? 1.5 : 0 // one driver per crew
+    const bags = [7, 6, 5, 6, 4][i % 5]
+    const gross = Math.round((hours * member.rate + otHours * member.rate * 1.5) * 100) / 100
+    const fringe = Math.round(gross * 0.18 * 100) / 100
+    timesheetEntries.push({
+      id: id('tse' + String(tseSeq++).padStart(5, '0')),
+      timesheet_id: ts.id,
+      employee_id: member.emp,
+      is_present: true,
+      work_type: 'planting',
+      hours_worked: hours,
+      hours, // kept for any consumer still reading `hours`
+      ot_hours: otHours,
+      drive_hours: driveHours,
+      bags_count: bags,
+      rate_applied: member.rate,
+      gross_pay: gross,
+      fringe_amount: fringe,
+      notes: null,
+      created_at: ts.created_at,
+    })
   })
 }
 
