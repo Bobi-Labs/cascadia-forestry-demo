@@ -115,7 +115,27 @@ export function useSupabaseQuery<T>(
   }, [cacheKey])
 
   useEffect(() => {
-    if (IS_DEMO_MODE) return
+    if (IS_DEMO_MODE) {
+      // Re-resolve fixtures whenever the filter changes. The useState
+      // initializer only seeds the FIRST render, so filtered queries whose
+      // filter value changes after mount (e.g. useContractUnits when a
+      // contract is selected) would otherwise stay stuck on the initial
+      // empty result.
+      setData(
+        enabled
+          ? (getDemoRows(tableName, {
+              filter:
+                filterColumn && filterValue != null
+                  ? { column: filterColumn, value: filterValue }
+                  : undefined,
+              orderBy: options?.orderBy,
+              ascending: options?.ascending ?? true,
+            }) as T[])
+          : [],
+      )
+      setLoading(false)
+      return
+    }
     if (!enabled) {
       setData([])
       setLoading(false)
