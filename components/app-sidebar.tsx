@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
+import { IS_DEMO_MODE } from '@/lib/demo-mode'
 import { useProfilePhoto } from '@/hooks/use-profile-photo'
 import { useCommsUnreadCount } from '@/hooks/use-comms-unread'
 import type { Role } from '@/lib/mock-data'
@@ -359,13 +360,16 @@ export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
               <span className="text-[10px] text-muted-foreground truncate">{companyLabel}</span>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          {/* No session to end in demo mode, so no sign-out affordance */}
+          {!IS_DEMO_MODE && (
+            <button
+              onClick={handleSignOut}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </aside>

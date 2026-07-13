@@ -6,6 +6,7 @@ import { Bell, ChevronDown, Menu, X, User, LogOut, Settings, Clock, AlertTriangl
 import { useQueryClient } from '@tanstack/react-query'
 import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
+import { IS_DEMO_MODE } from '@/lib/demo-mode'
 import { useTimesheetsWithDetails, useComplianceItems, invalidateSupabaseCache } from '@/hooks/use-supabase'
 import { useProfilePhoto } from '@/hooks/use-profile-photo'
 import type { Company, Language } from '@/lib/mock-data'
@@ -369,16 +370,18 @@ export function Topbar({ onHamburgerClick, mobileOpen }: { onHamburgerClick?: ()
                 </button>
               </div>
 
-              {/* Sign out */}
-              <div className="border-t border-border p-2">
-                <button
-                  onClick={() => { setProfileOpen(false); signOut() }}
-                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </button>
-              </div>
+              {/* Sign out. Hidden in demo mode, there is no session to end */}
+              {!IS_DEMO_MODE && (
+                <div className="border-t border-border p-2">
+                  <button
+                    onClick={() => { setProfileOpen(false); signOut() }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
