@@ -12,7 +12,6 @@ import { useApp } from '@/lib/app-context'
 import { useAuth } from '@/lib/auth-context'
 import { IS_DEMO_MODE } from '@/lib/demo-mode'
 import { useProfilePhoto } from '@/hooks/use-profile-photo'
-import { useCommsUnreadCount } from '@/hooks/use-comms-unread'
 import type { Role } from '@/lib/mock-data'
 import { OfficeTourButton } from '@/components/office-tour'
 import { ForemanTourButton } from '@/components/foreman-tour'
@@ -197,9 +196,6 @@ export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
   const navGroups = getNavGroups(role, t)
   const isOwnerView = role === 'owner'
   const isAdmin = role === 'admin'
-  // Unread count for the Communications nav badge — counts ops channels
-  // with messages newer than the user's last-seen marker (localStorage).
-  const commsUnread = useCommsUnreadCount(role)
 
   const handleSignOut = async () => {
     await signOut()
@@ -298,14 +294,6 @@ export function AppSidebar({ onNavClick }: { onNavClick?: () => void } = {}) {
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${isOwnerView ? 'h-5 w-5' : ''} ${comingSoonStyle ? 'text-amber-600/50 group-hover:text-amber-500/70' : ''}`} />
                   <span className="flex-1 truncate text-left">{label}</span>
-                  {/* Communications unread badge — red pill with count of
-                      channels with new messages since the user last viewed
-                      them. Hidden when 0 (no badge clutter at rest). */}
-                  {item.key === 'communications' && commsUnread > 0 && (
-                    <span className="rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
-                      {commsUnread}
-                    </span>
-                  )}
                   {item.badge === '' && item.badgeColor?.includes('destructive') && (
                     <span className="h-2 w-2 rounded-full bg-destructive" />
                   )}
